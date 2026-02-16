@@ -1,0 +1,15 @@
+{
+  "originHash" : "d012f13c1dffbc7836e916ddbd6c330f386dcf111def1a923a262a25eb5cf027",
+  "pins" : [
+    {
+      "identity" : "twitchirc",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/MahdiBM/TwitchIRC",
+      "state" : {
+        "revision" : "036f70385fe4f6d30ad2634699eb1e8e00b52087",
+        "version" : "1.6.0"
+      }
+    }
+  ],
+  "version" : 3
+}
