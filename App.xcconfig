@@ -1,0 +1,7 @@
+EMPTY =
+HTTPS = https:/$(EMPTY)/
+
+TWITCH_CLIENT_ID = pvh8p2l1f3l6wb7nxwbarxqv8m4x3o
+TWITCH_REDIRECT_URI_SCHEME = https
+TWITCH_REDIRECT_URI_HOST = chatless-auth.vercel.app
+TWITCH_SCOPES = user:read:chat user:write:chat

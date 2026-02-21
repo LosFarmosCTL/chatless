@@ -37,7 +37,17 @@ let project = Project(
           "UILaunchScreen": [
             "UIColorName": "",
             "UIImageName": "",
-          ]
+          ],
+          "TwitchClientID": "$(TWITCH_CLIENT_ID)",
+          "TwitchRedirectURIScheme": "$(TWITCH_REDIRECT_URI_SCHEME)",
+          "TwitchRedirectURIHost": "$(TWITCH_REDIRECT_URI_HOST)",
+          "TwitchScopes": "$(TWITCH_SCOPES)",
+          "CFBundleURLTypes": [
+            [
+              "CFBundleURLName": "chatless-auth",
+              "CFBundleURLSchemes": ["chatless-auth"],
+            ]
+          ],
         ]
       ),
       dependencies: [
@@ -50,8 +60,30 @@ let project = Project(
         "ENABLE_ASSET_CATALOG_APP_INTENTS_GENERATION": "YES",
 
         "ENABLE_MODULE_VERIFIER": "NO",
+      ],
+      xcconfig: "App.xcconfig"
+    ),
+
+    // MARK: Core Targets
+
+    .module(
+      name: "Auth",
+      bundleId: "app.chatless.Chatless.Auth",
+      sources: ["Core/Auth/**/*.swift"],
+    ),
+
+    // MARK: Feature Targets
+
+    .module(
+      name: "Account",
+      bundleId: "app.chatless.Chatless.Account",
+      sources: ["Features/Account/**/*.swift"],
+      resources: ["Resources/Account/**"],
+      dependencies: [
+        .target(name: "Auth"),
+        .target(name: "Components"),
       ]
-    )
+    ),
   ],
   additionalFiles: [
     "README.md",

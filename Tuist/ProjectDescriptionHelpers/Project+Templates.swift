@@ -26,7 +26,8 @@ extension Target {
     resources: ResourceFileElements? = nil,
     infoPlist: InfoPlist = .default,
     dependencies: [TargetDependency] = [],
-    additionalSettings: SettingsDictionary = [:]
+    additionalSettings: SettingsDictionary = [:],
+    xcconfig: Path? = nil
   ) -> Target {
     let mergedSettings = baseTargetSettings.merging(additionalSettings) { _, new in new }
 
@@ -43,8 +44,13 @@ extension Target {
         .package(product: "SwiftLintBuildToolPlugin", type: .plugin),
         .external(name: "Twitch"),
       ] + dependencies,
-      settings: .settings(base: mergedSettings)
-    )
+      settings: .settings(
+        base: mergedSettings,
+        configurations: xcconfig != nil
+          ? [
+            .debug(name: .debug, xcconfig: xcconfig),
+            .release(name: .release, xcconfig: xcconfig),
+          ] : []))
   }
 
   public static func testModule(
