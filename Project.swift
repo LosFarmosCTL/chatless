@@ -51,9 +51,11 @@ let project = Project(
         ]
       ),
       dependencies: [
-        .target(name: "Onboarding"),
-        .target(name: "Account"),
         .target(name: "Auth"),
+        .target(name: "TwitchSession"),
+
+        .target(name: "Account"),
+        .target(name: "Chat"),
       ],
       additionalSettings: [
         "ASSETCATALOG_COMPILER_APPICON_NAME": "Chatless",
@@ -71,6 +73,11 @@ let project = Project(
       bundleId: "app.chatless.Chatless.Auth",
       sources: ["Core/Auth/**/*.swift"],
     ),
+    .module(
+      name: "TwitchSession",
+      bundleId: "app.chatless.Chatless.TwitchSession",
+      sources: ["Core/TwitchSession/**/*.swift"],
+    ),
 
     // MARK: Feature Targets
 
@@ -80,8 +87,17 @@ let project = Project(
       sources: ["Features/Account/**/*.swift"],
       resources: ["Resources/Account/**"],
       dependencies: [
+        .target(name: "Auth")
+      ]
+    ),
+    .module(
+      name: "Chat",
+      bundleId: "app.chatless.Chatless.Chat",
+      sources: ["Features/Chat/**/*.swift"],
+      resources: ["Resources/Chat/**"],
+      dependencies: [
+        .target(name: "TwitchSession"),
         .target(name: "Auth"),
-        .target(name: "Components"),
       ]
     ),
   ],

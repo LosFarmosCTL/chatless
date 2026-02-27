@@ -1,5 +1,6 @@
 import Account
 import Auth
+import Chat
 import SwiftData
 import SwiftUI
 
@@ -14,70 +15,55 @@ struct ContentView: View {
   var body: some View {
     NavigationStack {
       VStack {
-        List {
-          ForEach(allAccounts) { account in
-            let isValid = auth.hasValidTokens(for: account.id)
+        ChatListView()
 
-            HStack {
-              AsyncImage(url: account.profileImageURL) { image in
-                image.resizable().scaledToFill()
-              } placeholder: {
-                Circle().fill(Color.gray.opacity(0.3))
-              }
-              .frame(width: 40, height: 40)
-              .clipShape(Circle())
-
-              VStack(alignment: .leading) {
-                Text(account.displayName ?? account.login)
-                  .font(.headline)
-
-                if account.id == auth.activeUserID {
-                  Text("Active")
-                    .font(.caption)
-                    .foregroundStyle(.green)
-                } else if !isValid {
-                  Text("Session Expired - Tap to log in")
-                    .font(.caption)
-                    .foregroundStyle(.red)
-                }
-              }
-
-              Spacer()
-
-              if account.id == auth.activeUserID {
-                Image(systemName: "checkmark")
-                  .foregroundColor(.blue)
-              } else if !isValid {
-                Image(systemName: "exclamationmark.triangle.fill")
-                  .foregroundColor(.red)
-              }
-            }
-            .contentShape(Rectangle())
-            .onTapGesture {
-              if isValid {
-                auth.switchTo(id: account.id)
-              } else {
-                showingLogin = true
-              }
-            }
-          }
-          .onDelete { indexSet in
-            for index in indexSet {
-              let accountToDelete = allAccounts[index]
-              auth.removeAccount(id: accountToDelete.id, deleteProfile: true)
-            }
-          }
-        }
-        .sheet(isPresented: $showingLogin) {
-          LoginButton()
-        }
-
+        LoginButton()
+      }
+      .sheet(isPresented: $showingLogin) {
         LoginButton()
       }
       .navigationTitle("Chatless")
       .toolbar {
         ToolbarItem(placement: .navigationBarTrailing) {
           Menu {
+            Menu("Switch Account") {
+              ForEach(allAccounts) { account in
+                let isValid = auth.hasValidTokens(for: account.id)
+                let isActive = account.id == auth.activeUserID
+
+                Button {
+                  if isValid {
+                    auth.switchTo(id: account.id)
+                  } else {
+                    showingLogin = true
+                  }
+                } label: {
+                  HStack {
+                    AsyncImage(url: account.profileImageURL) { image in
+                      image.resizable().scaledToFill()
+                    } placeholder: {
+                      Circle().fill(Color.gray.opacity(0.3))
+                    }
+                    .frame(width: 20, height: 20)
+                    .clipShape(Circle())
+
+                    VStack(alignment: .leading, spacing: 2) {
+                      Text(account.displayName ?? account.login)
+                      if isActive {
+                        Text("Active")
+                          .font(.caption)
+                          .foregroundStyle(.green)
+                      } else if !isValid {
+                        Text("Session Expired")
+                          .font(.caption)
+                          .foregroundStyle(.red)
+                      }
+                    }
+                  }
+                }
+              }
+            }
+
             Button(role: .destructive) {
               auth.logoutActive(deleteProfile: false)
             } label: {
