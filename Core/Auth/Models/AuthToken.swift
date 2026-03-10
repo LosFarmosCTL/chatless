@@ -14,4 +14,10 @@ public struct AuthToken: Codable {
     self.accessToken = accessToken
     self.expirationDate = expirationDate
   }
+
+  public func isExpired(skew: TimeInterval = 60) -> Bool {
+    guard let expirationDate else { return false }
+
+    return expirationDate.timeIntervalSinceNow <= skew
+  }
 }

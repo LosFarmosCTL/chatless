@@ -27,13 +27,8 @@ public final class AuthenticationStore: ObservableObject {
     self.credentials = credentials
 
     let storedID = UserDefaults.standard.string(forKey: Self.lastActiveKey)
-    self.activeUserID = storedID
-
-    // Check token validity on boot; clear if expired/missing
-    if let id = storedID, let tokens = credentials.load(for: id),
-      !credentials.isExpired(tokens)
-    {
-      // Session is valid
+    if let storedID, !credentials.isExpired(for: storedID) {
+      self.activeUserID = storedID
     } else {
       self.activeUserID = nil
     }
@@ -41,22 +36,20 @@ public final class AuthenticationStore: ObservableObject {
 
   public var activeProfile: AuthenticatedUser? {
     guard let id = activeUserID else { return nil }
-    let descriptor = FetchDescriptor<AuthenticatedUser>(
-      predicate: #Predicate { $0.id == id }
-    )
+
+    let descriptor = FetchDescriptor<AuthenticatedUser>(predicate: #Predicate { $0.id == id })
     return try? modelContext.fetch(descriptor).first
   }
 
-  public var activeTokens: AuthToken? {
+  public var activeToken: AuthToken? {
     guard let id = activeUserID else { return nil }
+
     return credentials.load(for: id)
   }
 
   public func login(profile: AuthenticatedUser, token: AuthToken) async {
-    let targetID = profile.id
-    let descriptor = FetchDescriptor<AuthenticatedUser>(
-      predicate: #Predicate { $0.id == targetID }
-    )
+    let id = profile.id
+    let descriptor = FetchDescriptor<AuthenticatedUser>(predicate: #Predicate { $0.id == id })
 
     if let existing = try? modelContext.fetch(descriptor).first {
       existing.displayName = profile.displayName
@@ -69,25 +62,20 @@ public final class AuthenticationStore: ObservableObject {
 
     try? modelContext.save()
 
-    credentials.save(token, for: targetID)
-    activeUserID = targetID
+    credentials.save(token, for: profile.id)
+    activeUserID = profile.id
   }
 
   public func switchTo(id: String) {
-    if let tokens = credentials.load(for: id), !credentials.isExpired(tokens) {
-      activeUserID = id
-    } else {
-      activeUserID = nil
-    }
+    activeUserID = if !credentials.isExpired(for: id) { id } else { nil }
   }
 
   public func removeAccount(id: String, deleteProfile: Bool = true) {
     credentials.delete(for: id)
 
     if deleteProfile {
-      let descriptor = FetchDescriptor<AuthenticatedUser>(
-        predicate: #Predicate { $0.id == id }
-      )
+      let descriptor = FetchDescriptor<AuthenticatedUser>(predicate: #Predicate { $0.id == id })
+
       if let profile = try? modelContext.fetch(descriptor).first {
         modelContext.delete(profile)
         try? modelContext.save()
@@ -105,14 +93,10 @@ public final class AuthenticationStore: ObservableObject {
   }
 
   public func tokenValidForActiveUser() -> Bool {
-    guard let tokens = activeTokens else { return false }
-    return !credentials.isExpired(tokens)
+    return activeToken?.isExpired() == false
   }
 
   public func hasValidTokens(for id: String) -> Bool {
-    if let tokens = credentials.load(for: id), !credentials.isExpired(tokens) {
-      return true
-    }
-    return false
+    return !credentials.isExpired(for: id)
   }
 }

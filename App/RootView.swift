@@ -30,7 +30,7 @@ struct RootView: View {
   private func handleAuthChange(_ activeUserID: String?) async {
     guard
       let activeUserID,
-      let tokens = auth.activeTokens,
+      let tokens = auth.activeToken,
       auth.tokenValidForActiveUser(),
       let profile = auth.activeProfile
     else {

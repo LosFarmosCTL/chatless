@@ -4,16 +4,12 @@ public protocol CredentialsService {
   func save(_ tokens: AuthToken, for userID: String)
   func load(for userID: String) -> AuthToken?
   func delete(for userID: String)
-  func isExpired(_ tokens: AuthToken, skew: TimeInterval) -> Bool
+  func isExpired(for userID: String, skew: TimeInterval) -> Bool
 }
 
 extension CredentialsService {
-  public func isExpired(_ tokens: AuthToken, skew: TimeInterval = 60) -> Bool {
-    if let expirationDate = tokens.expirationDate {
-      return expirationDate.timeIntervalSinceNow <= skew
-    }
-
-    return false
+  public func isExpired(for userID: String, skew: TimeInterval = 60) -> Bool {
+    return load(for: userID)?.isExpired(skew: skew) ?? true
   }
 }
 
