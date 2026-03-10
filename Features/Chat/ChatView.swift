@@ -1,3 +1,4 @@
+import Shared
 import SwiftUI
 import TwitchSession
 
@@ -20,5 +21,20 @@ public struct ChatView: View {
       }
     }
     .navigationTitle("Chat")
+  }
+}
+
+extension ChannelEventState.State: @retroactive CustomLocalizedStringResourceConvertible {
+  public var localizedStringResource: LocalizedStringResource {
+    switch self {
+    case .idle:
+      return LocalizedStringResource("Idle")
+    case .connecting:
+      return LocalizedStringResource("Connecting")
+    case .connected:
+      return LocalizedStringResource("Connected")
+    case .error(let message):
+      return LocalizedStringResource("Error: \(message)")
+    }
   }
 }

@@ -56,6 +56,7 @@ let project = Project(
 
         .target(name: "Account"),
         .target(name: "Chat"),
+        .target(name: "Mentions"),
       ],
       additionalSettings: [
         "ASSETCATALOG_COMPILER_APPICON_NAME": "Chatless",
@@ -64,6 +65,15 @@ let project = Project(
         "ENABLE_MODULE_VERIFIER": "NO",
       ],
       xcconfig: "App.xcconfig"
+    ),
+
+    // MARK: Shared Target
+
+    .module(
+      name: "Shared",
+      bundleId: "app.chatless.Chatless.Shared",
+      sources: ["Shared/**/*.swift"],
+      includeShared: false
     ),
 
     // MARK: Core Targets
@@ -99,6 +109,12 @@ let project = Project(
         .target(name: "TwitchSession"),
         .target(name: "Auth"),
       ]
+    ),
+    .module(
+      name: "Mentions",
+      bundleId: "app.chatless.Chatless.Mentions",
+      sources: ["Features/Mentions/**/*.swift"],
+      resources: ["Resources/Mentions/**"],
     ),
   ],
   additionalFiles: [

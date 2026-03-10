@@ -27,9 +27,20 @@ extension Target {
     infoPlist: InfoPlist = .default,
     dependencies: [TargetDependency] = [],
     additionalSettings: SettingsDictionary = [:],
-    xcconfig: Path? = nil
+    xcconfig: Path? = nil,
+    includeShared: Bool = true
   ) -> Target {
     let mergedSettings = baseTargetSettings.merging(additionalSettings) { _, new in new }
+    var mergedDependencies: [TargetDependency] = [
+      .package(product: "SwiftLintBuildToolPlugin", type: .plugin),
+      .external(name: "Twitch"),
+    ]
+
+    if includeShared {
+      mergedDependencies.append(.target(name: "Shared"))
+    }
+
+    mergedDependencies += dependencies
 
     return Target.target(
       name: name,
@@ -40,10 +51,7 @@ extension Target {
       infoPlist: infoPlist,
       sources: sources,
       resources: resources,
-      dependencies: [
-        .package(product: "SwiftLintBuildToolPlugin", type: .plugin),
-        .external(name: "Twitch"),
-      ] + dependencies,
+      dependencies: mergedDependencies,
       settings: .settings(
         base: mergedSettings,
         configurations: xcconfig != nil

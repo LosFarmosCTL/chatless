@@ -17,6 +17,7 @@ public struct ChatListView: View {
   public var body: some View {
     VStack(spacing: 12) {
       HStack(spacing: 12) {
+        // TODO: remove this, only for testing
         TextField("Add channel ID", text: $newChannelID)
           .textInputAutocapitalization(.never)
           .autocorrectionDisabled()
