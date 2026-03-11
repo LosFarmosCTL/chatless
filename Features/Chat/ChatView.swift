@@ -3,15 +3,15 @@ import SwiftUI
 import TwitchSession
 
 public struct ChatView: View {
-  @ObservedObject private var state: ChannelEventState
+  private let events: ChannelEventState
 
   public init(state: ChannelEventState) {
-    self.state = state
+    self.events = state
   }
 
   public var body: some View {
-    Text("State: \(state.state)")
-    List(state.chatMessages, id: \.messageID) { message in
+    Text("State: \(events.state)")
+    List(events.chatMessages, id: \.messageID) { message in
       VStack(alignment: .leading, spacing: 4) {
         Text(message.chatterLogin)
           .font(.caption)

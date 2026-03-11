@@ -2,20 +2,18 @@ import Foundation
 import Twitch
 
 @MainActor
-public final class GlobalEventState: ObservableObject {
+@Observable public final class GlobalEventState {
   public enum State: Equatable {
-    case idle
-    case connecting
-    case connected
+    case idle, connecting, connected
     case error(String)
   }
 
-  @Published public private(set) var state: State = .idle
-  @Published public private(set) var whispers: [WhisperReceivedEvent] = []
-  @Published public private(set) var unreadWhispers: Int = 0
+  public private(set) var state: State = .idle
+  public private(set) var whispers: [WhisperReceivedEvent] = []
+  public private(set) var unreadWhispers: Int = 0
 
-  private var tasks: [Task<Void, Never>] = []
-  private var sessionID: UUID?
+  @ObservationIgnored private var tasks: [Task<Void, Never>] = []
+  @ObservationIgnored private var sessionID: UUID?
 
   public init() {}
 
@@ -26,9 +24,7 @@ public final class GlobalEventState: ObservableObject {
     state = .connecting
 
     tasks = [
-      Task {
-        await self.consumeWhispers(session: session)
-      }
+      Task { await self.consumeWhispers(session: session) }
     ]
   }
 

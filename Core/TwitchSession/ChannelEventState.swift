@@ -2,36 +2,32 @@ import Foundation
 import Twitch
 
 @MainActor
-public final class ChannelEventState: ObservableObject {
+@Observable public final class ChannelEventState {
   public enum State: Equatable {
-    case idle
-    case connecting
-    case connected
+    case idle, connecting, connected
     case error(String)
   }
 
   public let channelID: String
 
-  @Published public private(set) var state: State = .idle
-  @Published public private(set) var chatMessages: [ChannelChatMessageEvent] = []
+  public private(set) var state: State = .idle
+  public private(set) var chatMessages: [ChannelChatMessageEvent] = []
 
-  private var tasks: [Task<Void, Never>] = []
-  private var sessionID: UUID?
+  @ObservationIgnored private var tasks: [Task<Void, Never>] = []
+  @ObservationIgnored private var sessionID: UUID?
 
   public init(channelID: String) {
     self.channelID = channelID
   }
 
   public func start(session: TwitchSessionStore.Session) {
-    stop()
+    self.stop()
 
     sessionID = session.id
     state = .connecting
 
     tasks = [
-      Task { [channelID] in
-        await self.consumeChatMessages(session: session, channelID: channelID)
-      }
+      Task { await self.consumeChatMessages(session: session, channelID: channelID) }
     ]
   }
 

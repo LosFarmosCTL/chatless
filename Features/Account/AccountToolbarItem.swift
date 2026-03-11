@@ -3,8 +3,8 @@ import SwiftData
 import SwiftUI
 
 public struct AccountToolbarItem: ToolbarContent {
-  @EnvironmentObject private var auth: AuthenticationStore
-  @EnvironmentObject private var loginService: LoginService
+  @Environment(AuthenticationStore.self) private var auth
+  @Environment(\.loginService) private var loginService
   @Environment(\.webAuthenticationSession) private var webAuthenticationSession
 
   @Query(sort: \AuthenticatedUser.lastLogin, order: .reverse)
@@ -18,7 +18,7 @@ public struct AccountToolbarItem: ToolbarContent {
   }
 
   private func login() {
-    Task { await loginService.login(using: webAuthenticationSession) }
+    Task { await loginService?.login(using: webAuthenticationSession) }
   }
 
   public var body: some ToolbarContent {

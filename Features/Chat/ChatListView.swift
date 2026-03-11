@@ -4,10 +4,9 @@ import TwitchSession
 
 public struct ChatListView: View {
   @Environment(\.modelContext) private var modelContext
-  @EnvironmentObject private var channelRegistry: ChannelEventStateRegistry
+  @Environment(\.channelRegistry) private var channelRegistry: ChannelEventStateRegistry!
 
-  @Query(sort: \ChatChannel.channelID)
-  private var channels: [ChatChannel]
+  @Query private var channels: [ChatChannel]
 
   @State private var newChannelID = ""
   @State private var trackedChannelIDs: Set<String> = []

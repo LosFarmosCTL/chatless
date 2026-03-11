@@ -6,20 +6,18 @@ import Twitch
 import TwitchSession
 
 struct RootView: View {
-  @EnvironmentObject private var auth: AuthenticationStore
-  @EnvironmentObject private var sessionStore: TwitchSessionStore
-  @EnvironmentObject private var channelRegistry: ChannelEventStateRegistry
-  @EnvironmentObject private var globalEventState: GlobalEventState
+  @Environment(AuthenticationStore.self) private var auth
+  @Environment(TwitchSessionStore.self) private var sessionStore
+  @Environment(GlobalEventState.self) private var globalEventState
+  @Environment(\.channelEventRegistry) private var channelRegistry: ChannelEventStateRegistry!
 
   @Query private var channels: [ChatChannel]
   @State private var trackedChannelIDs: Set<String> = []
 
   var body: some View {
     ContentView()
-      .task {
-        for await activeUserID in auth.$activeUserID.values {
-          await handleAuthChange(activeUserID)
-        }
+      .task(id: auth.activeUserID) {
+        await handleAuthChange(auth.activeUserID)
       }
       .task(id: channels.map(\.channelID)) {
         updateChannels(with: Set(channels.map(\.channelID)))

@@ -3,8 +3,12 @@ import AuthenticationServices
 import SwiftUI
 import Twitch
 
+extension EnvironmentValues {
+  @Entry public var loginService: LoginService?
+}
+
 @MainActor
-public final class LoginService: ObservableObject {
+public final class LoginService {
   private let auth: AuthenticationStore
 
   public init(auth: AuthenticationStore) {

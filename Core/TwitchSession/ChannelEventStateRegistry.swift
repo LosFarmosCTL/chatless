@@ -1,7 +1,13 @@
 import Foundation
+import SwiftUI
 
 @MainActor
-public final class ChannelEventStateRegistry: ObservableObject {
+extension EnvironmentValues {
+  @Entry public var channelRegistry: ChannelEventStateRegistry?
+}
+
+@MainActor
+public final class ChannelEventStateRegistry {
   private var states: [String: ChannelEventState] = [:]
   private var currentSession: TwitchSessionStore.Session?
 

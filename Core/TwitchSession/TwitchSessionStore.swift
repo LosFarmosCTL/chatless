@@ -2,7 +2,7 @@ import Foundation
 import Twitch
 
 @MainActor
-public final class TwitchSessionStore: ObservableObject {
+@Observable public final class TwitchSessionStore {
   public struct Session {
     public let id: UUID
     public let client: TwitchClient
@@ -16,8 +16,8 @@ public final class TwitchSessionStore: ObservableObject {
     case error(String)
   }
 
-  @Published public private(set) var session: Session?
-  @Published public private(set) var state: State = .idle
+  public private(set) var session: Session?
+  public private(set) var state: State = .idle
 
   public init() {}
 

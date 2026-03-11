@@ -3,8 +3,9 @@ import SwiftData
 import SwiftUI
 
 @MainActor
-public final class AuthenticationStore: ObservableObject {
-  @Published public var activeUserID: String? {
+@Observable public final class AuthenticationStore {
+  private static let lastActiveKey = "lastActiveUserID"
+  public var activeUserID: String? {
     didSet {
       let defaults = UserDefaults.standard
       if let id = activeUserID {
@@ -15,9 +16,8 @@ public final class AuthenticationStore: ObservableObject {
     }
   }
 
-  private let modelContext: ModelContext
-  private let credentials: any CredentialsService
-  private static let lastActiveKey = "lastActiveUserID"
+  @ObservationIgnored private let modelContext: ModelContext
+  @ObservationIgnored private let credentials: any CredentialsService
 
   public init(
     modelContext: ModelContext,
