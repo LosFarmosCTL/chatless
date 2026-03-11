@@ -92,10 +92,6 @@ import SwiftUI
     removeAccount(id: id, deleteProfile: deleteProfile)
   }
 
-  public func tokenValidForActiveUser() -> Bool {
-    return activeToken?.isExpired() == false
-  }
-
   public func hasValidTokens(for id: String) -> Bool {
     return !credentials.isExpired(for: id)
   }

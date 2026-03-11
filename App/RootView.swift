@@ -29,8 +29,8 @@ struct RootView: View {
     guard
       let activeUserID,
       let tokens = auth.activeToken,
-      auth.tokenValidForActiveUser(),
-      let profile = auth.activeProfile
+      let profile = auth.activeProfile,
+      !tokens.isExpired()
     else {
       await clearSession()
       return
