@@ -3,7 +3,7 @@ import SwiftUI
 
 @MainActor
 extension EnvironmentValues {
-  @Entry public var channelRegistry: ChannelEventStateRegistry?
+  @Entry public var channelEventRegistry: ChannelEventStateRegistry?
 }
 
 @MainActor
@@ -31,6 +31,13 @@ public final class ChannelEventStateRegistry {
     guard let state = states[id] else { return }
     state.stop()
     states.removeValue(forKey: id)
+  }
+
+  public func syncChannels(to channelIDs: Set<String>) {
+    let current = Set(states.keys)
+
+    for channelID in current.subtracting(channelIDs) { removeChannel(channelID) }
+    for channelID in channelIDs.subtracting(current) { getOrCreateChannel(channelID) }
   }
 
   public func apply(session: TwitchSessionStore.Session?) {

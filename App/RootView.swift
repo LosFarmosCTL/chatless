@@ -20,7 +20,7 @@ struct RootView: View {
         await handleAuthChange(auth.activeUserID)
       }
       .task(id: channels.map(\.channelID)) {
-        updateChannels(with: Set(channels.map(\.channelID)))
+        channelRegistry.syncChannels(to: Set(channels.map(\.channelID)))
       }
   }
 
@@ -50,17 +50,6 @@ struct RootView: View {
     } else {
       globalEventState.stop()
     }
-  }
-
-  @MainActor
-  private func updateChannels(with channelIDs: Set<String>) {
-    let added = channelIDs.subtracting(trackedChannelIDs)
-    let removed = trackedChannelIDs.subtracting(channelIDs)
-
-    for channelID in added { channelRegistry.getOrCreateChannel(channelID) }
-    for channelID in removed { channelRegistry.removeChannel(channelID) }
-
-    trackedChannelIDs = channelIDs
   }
 
   @MainActor
