@@ -2,6 +2,7 @@ import Account
 import Auth
 import Chat
 import Mentions
+import Search
 import SwiftData
 import SwiftUI
 
@@ -23,13 +24,13 @@ struct ContentView: View {
           .navigationTitle("Chatless")
           .toolbarTitleDisplayMode(.inline)
           .toolbar {
-            MentionsToolbarItem(placement: .topBarLeading, showingMentions: $showingMentions)
-
             AccountToolbarItem(placement: .topBarTrailing)
 
             FilterChatListToolbarItem(placement: .bottomBar)
             ToolbarSpacer(.fixed, placement: .bottomBar)
             DefaultToolbarItem(kind: .search, placement: .bottomBar)
+            ToolbarSpacer(.flexible, placement: .bottomBar)
+            MentionsToolbarItem(placement: .bottomBar, showingMentions: $showingMentions)
           }
           .sheet(isPresented: $showingMentions) { MentionsView() }
       }
@@ -45,6 +46,6 @@ struct ContentView: View {
   let (store, container) = PreviewHelper.authSetup(loggedIn: true, numOfAccounts: 4)
 
   ContentView()
-    .environmentObject(store)
+    .environment(store)
     .modelContainer(container)
 }

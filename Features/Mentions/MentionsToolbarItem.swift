@@ -14,8 +14,8 @@ public struct MentionsToolbarItem: ToolbarContent {
       Button {
         showingMentions = true
       } label: {
-        Image(systemName: "at")
-          .badge(10)
+        Image(systemName: "bell.badge")
+          .foregroundStyle(.red, .primary)
       }
     }
   }
