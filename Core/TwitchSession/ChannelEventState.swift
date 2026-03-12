@@ -20,14 +20,14 @@ import Twitch
     self.channelID = channelID
   }
 
-  public func start(session: TwitchSessionStore.Session) {
+  public func start(context: TwitchClientStore.Context) {
     self.stop()
 
-    sessionID = session.id
+    sessionID = context.id
     state = .connecting
 
     tasks = [
-      Task { await self.consumeChatMessages(session: session, channelID: channelID) }
+      Task { await self.consumeChatMessages(context: context, channelID: channelID) }
     ]
   }
 
@@ -40,22 +40,22 @@ import Twitch
   }
 
   private func consumeChatMessages(
-    session: TwitchSessionStore.Session,
+    context: TwitchClientStore.Context,
     channelID: String
   ) async {
     do {
-      let stream = try await session.client.eventStream(
-        for: .chatMessage(broadcasterID: channelID, userID: session.userID)
+      let stream = try await context.client.eventStream(
+        for: .chatMessage(broadcasterID: channelID, userID: context.userID)
       )
 
       await MainActor.run { self.state = .connected }
 
       for try await event in stream {
-        guard sessionID == session.id else { return }
+        guard sessionID == context.id else { return }
         await MainActor.run { self.chatMessages.append(event) }
       }
     } catch {
-      guard sessionID == session.id else { return }
+      guard sessionID == context.id else { return }
       await MainActor.run { self.state = .error(String(describing: error)) }
     }
   }

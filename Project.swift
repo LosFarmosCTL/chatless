@@ -88,6 +88,9 @@ let project = Project(
       name: "TwitchSession",
       bundleId: "app.chatless.Chatless.TwitchSession",
       sources: ["Core/TwitchSession/**/*.swift"],
+      dependencies: [
+        .target(name: "Auth")
+      ]
     ),
 
     // MARK: Feature Targets

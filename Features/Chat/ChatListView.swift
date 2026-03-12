@@ -4,7 +4,7 @@ import TwitchSession
 
 public struct ChatListView: View {
   @Environment(\.modelContext) private var modelContext
-  @Environment(\.channelEventRegistry) private var channelRegistry: ChannelEventStateRegistry!
+  @Environment(ChannelEventStateRegistry.self) private var channelRegistry
 
   @Query private var channels: [ChatChannel]
 

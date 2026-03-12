@@ -17,14 +17,14 @@ import Twitch
 
   public init() {}
 
-  public func start(session: TwitchSessionStore.Session) {
-    stop()
+  public func start(context: TwitchClientStore.Context) {
+    self.stop()
 
-    sessionID = session.id
+    sessionID = context.id
     state = .connecting
 
     tasks = [
-      Task { await self.consumeWhispers(session: session) }
+      Task { await self.consumeWhispers(context: context) }
     ]
   }
 
@@ -41,23 +41,23 @@ import Twitch
     unreadWhispers = 0
   }
 
-  private func consumeWhispers(session: TwitchSessionStore.Session) async {
+  private func consumeWhispers(context: TwitchClientStore.Context) async {
     do {
-      let stream = try await session.client.eventStream(
-        for: .whisperReceived(userID: session.userID)
+      let stream = try await context.client.eventStream(
+        for: .whisperReceived(userID: context.userID)
       )
 
       await MainActor.run { self.state = .connected }
 
       for try await event in stream {
-        guard sessionID == session.id else { return }
+        guard sessionID == context.id else { return }
         await MainActor.run {
           self.whispers.append(event)
           self.unreadWhispers += 1
         }
       }
     } catch {
-      guard sessionID == session.id else { return }
+      guard sessionID == context.id else { return }
       await MainActor.run { self.state = .error(String(describing: error)) }
     }
   }

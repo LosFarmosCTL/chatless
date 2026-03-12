@@ -3,44 +3,39 @@ import SwiftData
 import SwiftUI
 
 public struct AccountToolbarItem: ToolbarContent {
-  @Environment(AuthenticationStore.self) private var auth
-  @Environment(\.loginService) private var loginService
   @Environment(\.webAuthenticationSession) private var webAuthenticationSession
+
+  @Environment(AuthenticationStore.self) private var auth
+  @Environment(LoginService.self) private var loginService
 
   @Query(sort: \AuthenticatedUser.lastLogin, order: .reverse)
   var accounts: [AuthenticatedUser]
 
   @State private var showingLogin = false
 
-  public var placement: ToolbarItemPlacement
+  private let placement: ToolbarItemPlacement
   public init(placement: ToolbarItemPlacement) {
     self.placement = placement
   }
 
-  private func login() {
-    Task { await loginService?.login(using: webAuthenticationSession) }
-  }
+  private func login() { Task { await loginService.login(using: webAuthenticationSession) } }
 
   public var body: some ToolbarContent {
-    ToolbarItem(placement: .topBarTrailing) {
+    ToolbarItem(id: "account", placement: self.placement) {
       Menu {
         let accountBinding = Binding<String?>(
-          get: { auth.activeUserID },
+          get: { auth.activeAccount?.profile.id },
           set: { selectedID in
-            if let id = selectedID {
-              if auth.hasValidTokens(for: id) {
-                auth.switchTo(id: id)
-              } else {
-                login()
-              }
-            }
+            guard let selectedID else { return }
+
+            guard auth.hasValidTokens(for: selectedID) else { return login() }
+            auth.switchTo(accountID: selectedID)
           }
         )
 
         Menu("Switch Account", systemImage: "arrow.left.arrow.right") {
           Picker("Account", selection: accountBinding) {
             ForEach(accounts) { account in
-
               Button(action: {}) {
                 AsyncImage(url: account.profileImageURL) { image in
                   // HACK: SwiftUIs native image rendering inside of a toolbar menu doesn't allow
@@ -58,10 +53,10 @@ public struct AccountToolbarItem: ToolbarContent {
                   ProgressView()
                 }
 
-                Text(account.displayName ?? account.login)
+                Text(account.displayName)
 
                 if !auth.hasValidTokens(for: account.id) {
-                  Text("Session Expired")
+                  Text("Login Expired")
                 }
               }
               .tag(Optional(account.id))
@@ -78,12 +73,12 @@ public struct AccountToolbarItem: ToolbarContent {
         }
 
         Button(role: .destructive) {
-          auth.logoutActive(deleteProfile: false)
+          auth.removeActiveAccount()
         } label: {
           Label("Log Out", systemImage: "rectangle.portrait.and.arrow.right")
         }
       } label: {
-        if let profile = auth.activeProfile {
+        if let profile = auth.activeAccount?.profile {
           AsyncImage(url: profile.profileImageURL) { image in
             image.resizable().scaledToFill()
               .clipShape(Circle())

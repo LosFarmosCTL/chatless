@@ -4,14 +4,14 @@ import SwiftData
 @Model
 public final class AuthenticatedUser {
   @Attribute(.unique) public var id: String
-  public var displayName: String?
+  public var displayName: String
   public var login: String
   public var profileImageURL: URL?
   public var lastLogin: Date
 
   public init(
     id: String,
-    displayName: String?,
+    displayName: String,
     login: String,
     profileImageURL: URL?,
     lastLogin: Date
@@ -25,7 +25,7 @@ public final class AuthenticatedUser {
 
   public init(
     id: String,
-    displayName: String?,
+    displayName: String,
     login: String,
     profileImageURL: String,
     lastLogin: Date = Date()

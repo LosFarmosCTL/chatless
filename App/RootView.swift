@@ -7,46 +7,31 @@ import TwitchSession
 
 struct RootView: View {
   @Environment(AuthenticationStore.self) private var auth
-  @Environment(TwitchSessionStore.self) private var sessionStore
+  @Environment(TwitchClientStore.self) private var twitchClientStore
+
   @Environment(GlobalEventState.self) private var globalEventState
-  @Environment(\.channelEventRegistry) private var channelRegistry: ChannelEventStateRegistry!
+  @Environment(ChannelEventStateRegistry.self) private var channelRegistry
 
   @Query private var channels: [ChatChannel]
-  @State private var trackedChannelIDs: Set<String> = []
 
   var body: some View {
     ContentView()
-      .task(id: auth.activeUserID) {
-        await handleAuthChange(auth.activeUserID)
-      }
-      .task(id: channels.map(\.channelID)) {
-        channelRegistry.syncChannels(to: Set(channels.map(\.channelID)))
-      }
+      .task(id: auth.activeAccount) { await handleAuthChange(auth.activeAccount) }
+      .task(id: channels) { channelRegistry.syncChannels(to: Set(channels.map(\.channelID))) }
   }
 
   @MainActor
-  private func handleAuthChange(_ activeUserID: String?) async {
-    guard
-      let activeUserID,
-      let tokens = auth.activeToken,
-      let profile = auth.activeProfile,
-      !tokens.isExpired()
-    else {
+  private func handleAuthChange(_ activeAccount: ActiveAccount?) async {
+    guard let activeAccount else {
       await clearSession()
       return
     }
 
-    await sessionStore.switchAccount(
-      to: .init(
-        oAuth: tokens.accessToken,
-        clientID: tokens.clientID,
-        userID: activeUserID,
-        userLogin: profile.login
-      ))
+    await twitchClientStore.activate(account: activeAccount)
 
-    channelRegistry.apply(session: sessionStore.session)
-    if let session = sessionStore.session {
-      globalEventState.start(session: session)
+    channelRegistry.apply(context: twitchClientStore.context)
+    if let context = twitchClientStore.context {
+      globalEventState.start(context: context)
     } else {
       globalEventState.stop()
     }
@@ -54,9 +39,9 @@ struct RootView: View {
 
   @MainActor
   private func clearSession() async {
-    await sessionStore.logout()
+    await twitchClientStore.deactivate()
 
-    channelRegistry.apply(session: nil)
+    channelRegistry.apply(context: nil)
     globalEventState.stop()
   }
 }

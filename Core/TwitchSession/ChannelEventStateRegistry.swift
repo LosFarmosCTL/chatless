@@ -2,14 +2,9 @@ import Foundation
 import SwiftUI
 
 @MainActor
-extension EnvironmentValues {
-  @Entry public var channelEventRegistry: ChannelEventStateRegistry?
-}
-
-@MainActor
-public final class ChannelEventStateRegistry {
+@Observable public final class ChannelEventStateRegistry {
   private var states: [String: ChannelEventState] = [:]
-  private var currentSession: TwitchSessionStore.Session?
+  private var currentContext: TwitchClientStore.Context?
 
   public init() {}
 
@@ -20,8 +15,8 @@ public final class ChannelEventStateRegistry {
     let state = ChannelEventState(channelID: id)
     states[id] = state
 
-    if let session = currentSession {
-      state.start(session: session)
+    if let context = currentContext {
+      state.start(context: context)
     }
 
     return state
@@ -40,11 +35,11 @@ public final class ChannelEventStateRegistry {
     for channelID in channelIDs.subtracting(current) { getOrCreateChannel(channelID) }
   }
 
-  public func apply(session: TwitchSessionStore.Session?) {
-    currentSession = session
+  public func apply(context: TwitchClientStore.Context?) {
+    currentContext = context
     states.values.forEach { $0.stop() }
 
-    guard let session else { return }
-    states.values.forEach { $0.start(session: session) }
+    guard let context else { return }
+    states.values.forEach { $0.start(context: context) }
   }
 }

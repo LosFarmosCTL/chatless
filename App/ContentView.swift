@@ -7,6 +7,8 @@ import SwiftData
 import SwiftUI
 
 struct ContentView: View {
+  @Environment(AuthenticationStore.self) private var auth
+
   @State private var showingMentions = false
 
   @State private var searchText = ""
@@ -14,38 +16,34 @@ struct ContentView: View {
 
   var body: some View {
     NavigationStack {
-      if isSearching {
-        SearchView()
-          .toolbar {
-            DefaultToolbarItem(kind: .search, placement: .bottomBar)
-          }
-      } else {
-        ChatListView()
-          .navigationTitle("Chatless")
-          .toolbarTitleDisplayMode(.inline)
-          .toolbar {
-            AccountToolbarItem(placement: .topBarTrailing)
+      ZStack {
+        if isSearching {
+          SearchView(searchText: searchText)
+        } else {
+          ChatListView()
+        }
+      }
+      .navigationTitle("Chatless")
+      .toolbarTitleDisplayMode(.inline)
+      .toolbar {
+        MentionsToolbarItem(placement: .topBarTrailing, showingMentions: $showingMentions)
+        AccountToolbarItem(placement: .topBarTrailing)
 
-            FilterChatListToolbarItem(placement: .bottomBar)
-            ToolbarSpacer(.fixed, placement: .bottomBar)
-            DefaultToolbarItem(kind: .search, placement: .bottomBar)
-            ToolbarSpacer(.flexible, placement: .bottomBar)
-            MentionsToolbarItem(placement: .bottomBar, showingMentions: $showingMentions)
-          }
-          .sheet(isPresented: $showingMentions) { MentionsView() }
+        FilterChatListToolbarItem(placement: .bottomBar)
+        ToolbarSpacer(.flexible, placement: .bottomBar)
+        DefaultToolbarItem(kind: .search, placement: .bottomBar)
+      }
+      .searchable(
+        text: $searchText,
+        isPresented: $isSearching,
+        prompt: "Search on Twitch"
+      )
+      .sheet(isPresented: $showingMentions) { MentionsView() }
+      .sheet(isPresented: .constant(auth.activeAccount == nil)) {
+        AccountManagerView()
+          .interactiveDismissDisabled()
+          .presentationDetents([.medium, .large])
       }
     }
-    .searchable(
-      text: $searchText, isPresented: $isSearching,
-      prompt: "Search on Twitch")
-    //    .searchToolbarBehavior(.minimize)
   }
-}
-
-#Preview {
-  let (store, container) = PreviewHelper.authSetup(loggedIn: true, numOfAccounts: 4)
-
-  ContentView()
-    .environment(store)
-    .modelContainer(container)
 }

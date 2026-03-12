@@ -3,12 +3,8 @@ import AuthenticationServices
 import SwiftUI
 import Twitch
 
-extension EnvironmentValues {
-  @Entry public var loginService: LoginService?
-}
-
 @MainActor
-public final class LoginService {
+@Observable public final class LoginService {
   private let auth: AuthenticationStore
 
   public init(auth: AuthenticationStore) {
@@ -39,13 +35,13 @@ public final class LoginService {
           userID: validatedToken.userID,
           userLogin: validatedToken.login)
       ).helix(endpoint: .getUsers(ids: [validatedToken.userID])).first {
-        await auth.login(
+        await auth.activateAccount(
           profile: .init(
             id: user.id,
             displayName: user.displayName,
             login: user.login,
             profileImageURL: user.profileImageUrl),
-          token: .init(
+          with: AuthToken(
             accessToken: token,
             expirationDate: validatedToken.expiresIn.flatMap {
               Date(timeIntervalSinceNow: Double($0))

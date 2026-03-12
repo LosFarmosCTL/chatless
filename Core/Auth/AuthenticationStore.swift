@@ -5,19 +5,26 @@ import SwiftUI
 @MainActor
 @Observable public final class AuthenticationStore {
   private static let lastActiveKey = "lastActiveUserID"
-  public var activeUserID: String? {
+
+  public enum State: Equatable {
+    case none, active
+    case expired(Profile)
+  }
+
+  @ObservationIgnored private let modelContext: ModelContext
+  @ObservationIgnored private let credentials: any CredentialsService
+
+  public private(set) var state: State = .none
+  public private(set) var activeAccount: ActiveAccount? {
     didSet {
       let defaults = UserDefaults.standard
-      if let id = activeUserID {
-        defaults.set(id, forKey: Self.lastActiveKey)
+      if let userID = self.activeAccount?.profile.id {
+        defaults.set(userID, forKey: Self.lastActiveKey)
       } else {
         defaults.removeObject(forKey: Self.lastActiveKey)
       }
     }
   }
-
-  @ObservationIgnored private let modelContext: ModelContext
-  @ObservationIgnored private let credentials: any CredentialsService
 
   public init(
     modelContext: ModelContext,
@@ -27,27 +34,10 @@ import SwiftUI
     self.credentials = credentials
 
     let storedID = UserDefaults.standard.string(forKey: Self.lastActiveKey)
-    if let storedID, !credentials.isExpired(for: storedID) {
-      self.activeUserID = storedID
-    } else {
-      self.activeUserID = nil
-    }
+    if let storedID { self.switchTo(accountID: storedID) }
   }
 
-  public var activeProfile: AuthenticatedUser? {
-    guard let id = activeUserID else { return nil }
-
-    let descriptor = FetchDescriptor<AuthenticatedUser>(predicate: #Predicate { $0.id == id })
-    return try? modelContext.fetch(descriptor).first
-  }
-
-  public var activeToken: AuthToken? {
-    guard let id = activeUserID else { return nil }
-
-    return credentials.load(for: id)
-  }
-
-  public func login(profile: AuthenticatedUser, token: AuthToken) async {
+  public func activateAccount(profile: AuthenticatedUser, with token: AuthToken) async {
     let id = profile.id
     let descriptor = FetchDescriptor<AuthenticatedUser>(predicate: #Predicate { $0.id == id })
 
@@ -61,16 +51,40 @@ import SwiftUI
     }
 
     try? modelContext.save()
-
     credentials.save(token, for: profile.id)
-    activeUserID = profile.id
+
+    self.switchTo(accountID: profile.id)
   }
 
-  public func switchTo(id: String) {
-    activeUserID = if !credentials.isExpired(for: id) { id } else { nil }
+  @discardableResult public func switchTo(accountID: String) -> Bool {
+    guard let profile = loadProfile(id: accountID) else {
+      activeAccount = nil
+      state = .none
+      return false
+    }
+
+    guard let token = credentials.load(for: accountID), !token.isExpired() else {
+      activeAccount = nil
+      state = .expired(profile)
+      return false
+    }
+
+    activeAccount = ActiveAccount(
+      profile: profile,
+      accessToken: token.accessToken,
+      clientID: token.clientID
+    )
+
+    state = .active
+    return true
   }
 
   public func removeAccount(id: String, deleteProfile: Bool = true) {
+    if activeAccount?.profile.id == id {
+      activeAccount = nil
+      state = .none
+    }
+
     credentials.delete(for: id)
 
     if deleteProfile {
@@ -81,18 +95,20 @@ import SwiftUI
         try? modelContext.save()
       }
     }
-
-    if activeUserID == id {
-      activeUserID = nil
-    }
   }
 
-  public func logoutActive(deleteProfile: Bool = false) {
-    guard let id = activeUserID else { return }
-    removeAccount(id: id, deleteProfile: deleteProfile)
+  public func removeActiveAccount() {
+    guard let id = activeAccount?.profile.id else { return }
+    removeAccount(id: id)
   }
 
-  public func hasValidTokens(for id: String) -> Bool {
-    return !credentials.isExpired(for: id)
+  public func hasValidTokens(for accountID: String) -> Bool {
+    return !credentials.isExpired(for: accountID)
+  }
+
+  private func loadProfile(id: String) -> Profile? {
+    let descriptor = FetchDescriptor<AuthenticatedUser>(predicate: #Predicate { $0.id == id })
+    guard let user = try? modelContext.fetch(descriptor).first else { return nil }
+    return Profile(user)
   }
 }

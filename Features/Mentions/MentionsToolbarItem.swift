@@ -10,7 +10,7 @@ public struct MentionsToolbarItem: ToolbarContent {
   }
 
   public var body: some ToolbarContent {
-    ToolbarItem(placement: placement) {
+    ToolbarItem(id: "mentions", placement: placement) {
       Button {
         showingMentions = true
       } label: {
