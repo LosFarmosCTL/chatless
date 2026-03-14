@@ -1,6 +1,7 @@
 import Account
 import Auth
 import Chat
+import Shared
 import SwiftData
 import SwiftUI
 import TwitchSession
@@ -9,7 +10,9 @@ import TwitchSession
 struct ChatlessApp: App {
   private let container: ModelContainer
 
-  @State private var auth: AuthenticationStore
+  @State private var router: AppRouter
+
+  @State private var authenticationStore: AuthenticationStore
   @State private var loginService: LoginService
   @State private var twitchClientStore: TwitchClientStore
   @State private var twitchAPIService: TwitchAPIService
@@ -21,6 +24,8 @@ struct ChatlessApp: App {
     // swiftlint:disable:next force_try
     self.container = try! ModelContainer(for: AuthenticatedUser.self, ChatChannel.self)
 
+    let router = AppRouter()
+
     let auth = AuthenticationStore(modelContext: container.mainContext)
     let loginService = LoginService(auth: auth)
 
@@ -29,7 +34,8 @@ struct ChatlessApp: App {
     let channelEventRegistry = ChannelEventStateRegistry()
     let globalEventState = GlobalEventState()
 
-    self._auth = State(initialValue: auth)
+    self._router = State(initialValue: router)
+    self._authenticationStore = State(initialValue: auth)
     self._loginService = State(initialValue: loginService)
     self._twitchClientStore = State(initialValue: twitchClientStore)
     self._twitchAPIService = State(initialValue: twitchAPIService)
@@ -42,7 +48,9 @@ struct ChatlessApp: App {
       RootView()
         .modelContainer(container)
 
-        .environment(auth)
+        .environment(router)
+
+        .environment(authenticationStore)
         .environment(loginService)
 
         .environment(twitchClientStore)

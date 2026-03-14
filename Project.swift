@@ -125,7 +125,10 @@ let project = Project(
       bundleId: "app.chatless.Chatless.Search",
       sources: ["Features/Search/**/*.swift"],
       resources: ["Resources/Search/**"],
-      dependencies: []
+      dependencies: [
+        .target(name: "TwitchSession"),
+        .target(name: "Chat"),
+      ]
     ),
   ],
   additionalFiles: [
