@@ -74,9 +74,11 @@ public struct SearchView: View {
       try await Task.sleep(for: debounceDuration)
       try Task.checkCancellation()
 
-      let (channels, _) = try await twitchAPI.request(.searchChannels(for: query, limit: 40))
+      let channels = try await twitchAPI.request(.searchChannels(for: query, limit: 40)).channels
+        .filter { channel in !self.channels.contains(where: { $0.id == channel.id }) }
+        .prioritizingExactMatch(query: query)
 
-      results = .loaded(channels.prioritizingExactMatch(query: query))
+      results = .loaded(channels)
     } catch is CancellationError {
       results = .loading
     } catch {
