@@ -12,55 +12,57 @@ public struct SearchView: View {
     case error(String)
   }
 
+  private let debounceDuration: Duration = .milliseconds(300)
+
   @Environment(\.dismissSearch) private var dismissSearch
   @Environment(\.modelContext) private var modelContext
 
   @Environment(AppRouter.self) private var router
   @Environment(TwitchAPIService.self) private var twitchAPI
+  @Environment(ChannelStatusStore.self) private var channelStatusStore
 
   @State private var results: TwitchResults = .loaded([])
 
-  private let debounceDuration: Duration = .milliseconds(300)
   private let searchText: String
+  private var query: String {
+    searchText.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+  }
 
-  @Query private var channels: [ChatChannel]
+  @Query private var channels: [AddedChannel]
 
   public init(searchText: String) {
     self.searchText = searchText
 
-    self._channels = Query(filter: #Predicate { $0.channelID.contains(searchText) })
+    let query = self.query
+    self._channels = Query(filter: #Predicate { $0.login.contains(query) })
   }
 
   public var body: some View {
     Group {
-      if searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+      if query.isEmpty {
         ContentUnavailableView(
           "Search Twitch",
           systemImage: "magnifyingglass",
           description: Text("Try searching for a channel."))
       } else {
         SearchResultsView(
-          favoriteChannels: channels,
+          addedChannels: channels,
           twitchResults: results,
         ) { action in
           switch action {
-          case .openFavorite(let channelID):
+          case .openChannel(let channelID):
             openChannel(channelID: channelID)
-          case .addFavorite(let channelID):
-            addFavorite(channelID: channelID)
+          case .addChannel(let channel):
+            addChannel(channel: channel)
           }
         }
       }
     }
-    .task(id: searchText) {
-      await runSearch()
-    }
+    .task(id: query) { await runSearch() }
   }
 
   @MainActor
   private func runSearch() async {
-    let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-
     guard !query.isEmpty else {
       results = .loading
       return
@@ -82,16 +84,24 @@ public struct SearchView: View {
     }
   }
 
-  private func addFavorite(channelID: String) {
-    let trimmed = channelID.trimmingCharacters(in: .whitespacesAndNewlines)
-    guard !trimmed.isEmpty else { return }
+  private func addChannel(channel: Channel) {
+    if !channels.contains(where: { $0.id == channel.id }) {
+      modelContext.insert(
+        AddedChannel(
+          id: channel.id,
+          login: channel.login,
+          displayName: channel.name,
+          profileImageURL: channel.profilePictureURL))
 
-    if !channels.contains(where: { $0.channelID == trimmed }) {
-      modelContext.insert(ChatChannel(channelID: trimmed))
       try? modelContext.save()
+
+      channelStatusStore.update(
+        channelID: channel.id,
+        isLive: channel.isLive,
+        title: channel.title)
     }
 
-    openChannel(channelID: trimmed)
+    openChannel(channelID: channel.id)
   }
 
   private func openChannel(channelID: String) {

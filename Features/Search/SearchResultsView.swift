@@ -4,27 +4,27 @@ import SwiftUI
 import Twitch
 
 enum SearchResultAction {
-  case addFavorite(channelID: String)
-  case openFavorite(channelID: String)
+  case addChannel(channel: Channel)
+  case openChannel(id: String)
 }
 
 struct SearchResultsView: View {
   private let maxTwitchResults = 5
   private let skeletonWidths: [CGFloat] = [96, 142, 118, 168, 104]
 
-  let favoriteChannels: [ChatChannel]
+  let addedChannels: [AddedChannel]
   let twitchResults: SearchView.TwitchResults
   let onResultAction: (SearchResultAction) -> Void
 
   var body: some View {
     List {
-      if !favoriteChannels.isEmpty {
-        Section(header: Text("Favorites")) {
-          ForEach(favoriteChannels, id: \.id) { channel in
+      if !addedChannels.isEmpty {
+        Section(header: Text("Added Channels")) {
+          ForEach(addedChannels, id: \.id) { channel in
             Button {
-              onResultAction(.openFavorite(channelID: channel.channelID))
+              onResultAction(.openChannel(id: channel.id))
             } label: {
-              Text(channel.channelID)
+              Text(channel.displayName)
             }
           }
         }
@@ -47,7 +47,7 @@ struct SearchResultsView: View {
           } else {
             ForEach(twitchResults.prefix(maxTwitchResults), id: \.id) { channel in
               Button {
-                onResultAction(.addFavorite(channelID: channel.id))
+                onResultAction(.addChannel(channel: channel))
               } label: {
                 TwitchResultView(channel: channel)
               }
@@ -78,7 +78,22 @@ struct SearchResultsView: View {
 
 #Preview {
   SearchResultsView(
-    favoriteChannels: [.init(channelID: "1"), .init(channelID: "2")],
+    addedChannels: [
+      .init(
+        id: "1",
+        login: "forsen",
+        displayName: "forsen",
+        profileImageURL:
+          "https://static-cdn.jtvnw.net/jtv_user_pictures/forsen-profile_image-48b43e1e4f54b5c8-300x300.png",
+      ),
+      .init(
+        id: "2",
+        login: "forsen",
+        displayName: "forsen",
+        profileImageURL:
+          "https://static-cdn.jtvnw.net/jtv_user_pictures/forsen-profile_image-48b43e1e4f54b5c8-300x300.png",
+      ),
+    ],
     twitchResults: .loaded(
       Array(
         repeating: .init(
@@ -101,7 +116,22 @@ struct SearchResultsView: View {
 
 #Preview("Loading") {
   SearchResultsView(
-    favoriteChannels: [.init(channelID: "1"), .init(channelID: "2")],
+    addedChannels: [
+      .init(
+        id: "1",
+        login: "forsen",
+        displayName: "forsen",
+        profileImageURL:
+          "https://static-cdn.jtvnw.net/jtv_user_pictures/forsen-profile_image-48b43e1e4f54b5c8-300x300.png",
+      ),
+      .init(
+        id: "2",
+        login: "forsen",
+        displayName: "forsen",
+        profileImageURL:
+          "https://static-cdn.jtvnw.net/jtv_user_pictures/forsen-profile_image-48b43e1e4f54b5c8-300x300.png",
+      ),
+    ],
     twitchResults: .loading,
     onResultAction: { _ in }
   )

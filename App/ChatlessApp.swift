@@ -19,10 +19,11 @@ struct ChatlessApp: App {
 
   @State private var channelEventRegistry: ChannelEventStateRegistry
   @State private var globalEventState: GlobalEventState
+  @State private var channelStatusStore: ChannelStatusStore
 
   init() {
     // swiftlint:disable:next force_try
-    self.container = try! ModelContainer(for: AuthenticatedUser.self, ChatChannel.self)
+    self.container = try! ModelContainer(for: AuthenticatedUser.self, AddedChannel.self)
 
     let router = AppRouter()
 
@@ -33,6 +34,7 @@ struct ChatlessApp: App {
     let twitchAPIService = TwitchAPIService(twitchClientStore: twitchClientStore)
     let channelEventRegistry = ChannelEventStateRegistry()
     let globalEventState = GlobalEventState()
+    let channelStatusStore = ChannelStatusStore()
 
     self._router = State(initialValue: router)
     self._authenticationStore = State(initialValue: auth)
@@ -41,6 +43,7 @@ struct ChatlessApp: App {
     self._twitchAPIService = State(initialValue: twitchAPIService)
     self._channelEventRegistry = State(initialValue: channelEventRegistry)
     self._globalEventState = State(initialValue: globalEventState)
+    self._channelStatusStore = State(initialValue: channelStatusStore)
   }
 
   var body: some Scene {
@@ -57,6 +60,7 @@ struct ChatlessApp: App {
         .environment(twitchAPIService)
         .environment(globalEventState)
         .environment(channelEventRegistry)
+        .environment(channelStatusStore)
     }
   }
 }

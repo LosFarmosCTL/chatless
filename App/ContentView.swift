@@ -18,6 +18,7 @@ struct ContentView: View {
 
   @State private var searchText = ""
   @State private var isSearching: Bool = false
+  @Binding internal var isRefreshing: Bool
 
   var body: some View {
     @Bindable var router = router
@@ -39,6 +40,17 @@ struct ContentView: View {
         FilterChatListToolbarItem(placement: .bottomBar)
         ToolbarSpacer(.flexible, placement: .bottomBar)
         DefaultToolbarItem(kind: .search, placement: .bottomBar)
+
+        if isRefreshing {
+          ToolbarItem(placement: .principal) {
+            HStack {
+              ProgressView()
+
+              Text("Chatless")
+                .font(.headline)
+            }
+          }
+        }
       }
       .searchable(
         text: $searchText,

@@ -61,17 +61,39 @@ struct TwitchResultView: View {
 }
 
 #Preview {
-  TwitchResultView(
-    channel: .init(
-      id: "22484632",
-      login: "forsen",
-      name: "forsen",
-      language: "en",
-      gameID: "509663",
-      gameName: "Special Events",
-      isLive: false,
-      tags: ["English"],
-      profilePictureURL:
-        "https://static-cdn.jtvnw.net/jtv_user_pictures/forsen-profile_image-48b43e1e4f54b5c8-300x300.png",
-      title: "Future Game Show!", startedAt: Date()))
+  List {
+    TwitchResultView(
+      channel: .init(
+        id: "22484632",
+        login: "forsen",
+        name: "forsen",
+        language: "en",
+        gameID: "509663",
+        gameName: "Special Events",
+        isLive: false,
+        tags: ["English"],
+        profilePictureURL:
+          "https://static-cdn.jtvnw.net/jtv_user_pictures/forsen-profile_image-48b43e1e4f54b5c8-300x300.png",
+        title: "Future Game Show!", startedAt: Date()))
+  }
+  .listStyle(.plain)
+}
+
+#Preview("Live") {
+  List {
+    TwitchResultView(
+      channel: .init(
+        id: "22484632",
+        login: "forsen",
+        name: "forsen",
+        language: "en",
+        gameID: "509663",
+        gameName: "Special Events",
+        isLive: true,
+        tags: ["English"],
+        profilePictureURL:
+          "https://static-cdn.jtvnw.net/jtv_user_pictures/forsen-profile_image-48b43e1e4f54b5c8-300x300.png",
+        title: "Future Game Show!", startedAt: Date()))
+  }
+  .listStyle(.plain)
 }
