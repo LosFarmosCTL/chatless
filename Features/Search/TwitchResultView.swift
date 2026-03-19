@@ -6,7 +6,7 @@ struct TwitchResultView: View {
 
   var body: some View {
     HStack(spacing: 8) {
-      AsyncImage(url: URL(string: channel.profilePictureURL)) { image in
+      AsyncImage(url: URL(string: channel.profileImageURL)) { image in
         image.resizable().scaledToFill()
       } placeholder: {
         Circle().fill(.gray.opacity(0.2))
@@ -72,7 +72,7 @@ struct TwitchResultView: View {
         gameName: "Special Events",
         isLive: false,
         tags: ["English"],
-        profilePictureURL:
+        profileImageURL:
           "https://static-cdn.jtvnw.net/jtv_user_pictures/forsen-profile_image-48b43e1e4f54b5c8-300x300.png",
         title: "Future Game Show!", startedAt: Date()))
   }
@@ -91,7 +91,7 @@ struct TwitchResultView: View {
         gameName: "Special Events",
         isLive: true,
         tags: ["English"],
-        profilePictureURL:
+        profileImageURL:
           "https://static-cdn.jtvnw.net/jtv_user_pictures/forsen-profile_image-48b43e1e4f54b5c8-300x300.png",
         title: "Future Game Show!", startedAt: Date()))
   }

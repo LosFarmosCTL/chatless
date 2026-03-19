@@ -24,7 +24,12 @@ struct SearchResultsView: View {
             Button {
               onResultAction(.openChannel(id: channel.id))
             } label: {
-              Text(channel.displayName)
+              ChatListRowView(
+                displayName: channel.displayName,
+                profileImageURL: channel.profileImageURL,
+                isLive: false,
+                title: nil
+              )
             }
           }
         }
@@ -84,14 +89,14 @@ struct SearchResultsView: View {
         login: "forsen",
         displayName: "forsen",
         profileImageURL:
-          "https://static-cdn.jtvnw.net/jtv_user_pictures/forsen-profile_image-48b43e1e4f54b5c8-300x300.png",
+          "https://static-cdn.jtvnw.net/jtv_user_pictures/forsen-profile_image-48b43e1e4f54b5c8-300x300.png"
       ),
       .init(
         id: "2",
         login: "forsen",
         displayName: "forsen",
         profileImageURL:
-          "https://static-cdn.jtvnw.net/jtv_user_pictures/forsen-profile_image-48b43e1e4f54b5c8-300x300.png",
+          "https://static-cdn.jtvnw.net/jtv_user_pictures/forsen-profile_image-48b43e1e4f54b5c8-300x300.png"
       ),
     ],
     twitchResults: .loaded(
@@ -105,7 +110,7 @@ struct SearchResultsView: View {
           gameName: "Special Events",
           isLive: false,
           tags: ["English"],
-          profilePictureURL:
+          profileImageURL:
             "https://static-cdn.jtvnw.net/jtv_user_pictures/forsen-profile_image-48b43e1e4f54b5c8-300x300.png",
           title: "Future Game Show!", startedAt: Date()),
         count: 5)
@@ -122,14 +127,14 @@ struct SearchResultsView: View {
         login: "forsen",
         displayName: "forsen",
         profileImageURL:
-          "https://static-cdn.jtvnw.net/jtv_user_pictures/forsen-profile_image-48b43e1e4f54b5c8-300x300.png",
+          "https://static-cdn.jtvnw.net/jtv_user_pictures/forsen-profile_image-48b43e1e4f54b5c8-300x300.png"
       ),
       .init(
         id: "2",
         login: "forsen",
         displayName: "forsen",
         profileImageURL:
-          "https://static-cdn.jtvnw.net/jtv_user_pictures/forsen-profile_image-48b43e1e4f54b5c8-300x300.png",
+          "https://static-cdn.jtvnw.net/jtv_user_pictures/forsen-profile_image-48b43e1e4f54b5c8-300x300.png"
       ),
     ],
     twitchResults: .loading,

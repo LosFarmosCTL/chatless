@@ -11,11 +11,12 @@ public struct AccountToolbarItem: ToolbarContent {
   @Query(sort: \AuthenticatedUser.lastLogin, order: .reverse)
   var accounts: [AuthenticatedUser]
 
-  @State private var showingLogin = false
+  private let isLoading: Bool
 
   private let placement: ToolbarItemPlacement
-  public init(placement: ToolbarItemPlacement) {
+  public init(placement: ToolbarItemPlacement, isLoading: Bool) {
     self.placement = placement
+    self.isLoading = isLoading
   }
 
   private func login() { Task { await loginService.login(using: webAuthenticationSession) } }
@@ -34,6 +35,13 @@ public struct AccountToolbarItem: ToolbarContent {
         )
 
         Menu("Switch Account", systemImage: "arrow.left.arrow.right") {
+          Section {
+            Button(action: login) {
+              Image(systemName: "person.crop.circle.badge.plus")
+              Text("Add account")
+            }
+          }
+
           Picker("Account", selection: accountBinding) {
             ForEach(accounts) { account in
               Button(action: {}) {
@@ -64,21 +72,23 @@ public struct AccountToolbarItem: ToolbarContent {
           }
           .pickerStyle(.inline)
 
-          Section {
-            Button(action: login) {
-              Image(systemName: "person.crop.circle.badge.plus")
-              Text("Add account")
-            }
+          Button(role: .destructive) {
+            auth.removeActiveAccount()
+          } label: {
+            Label("Log Out", systemImage: "rectangle.portrait.and.arrow.right")
           }
         }
 
-        Button(role: .destructive) {
-          auth.removeActiveAccount()
-        } label: {
-          Label("Log Out", systemImage: "rectangle.portrait.and.arrow.right")
+        Section {
+          Button {
+          } label: {
+            Label("Settings", systemImage: "gear")
+          }
         }
       } label: {
-        if let profile = auth.activeAccount?.profile {
+        if isLoading {
+          ProgressView()
+        } else if let profile = auth.activeAccount?.profile {
           AsyncImage(url: profile.profileImageURL) { image in
             image.resizable().scaledToFill()
               .clipShape(Circle())

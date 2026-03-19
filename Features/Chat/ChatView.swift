@@ -21,6 +21,7 @@ public struct ChatView: View {
       }
     }
     .navigationTitle("Chat")
+    .toolbarTitleDisplayMode(.inline)
   }
 }
 

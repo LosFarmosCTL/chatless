@@ -23,7 +23,7 @@ struct RootView: View {
   @State private var isRefreshing: Bool = false
 
   var body: some View {
-    ContentView(isRefreshing: $isRefreshing)
+    ContentView(isRefreshing: isRefreshing)
       .task(id: auth.activeAccount) { await handleAuthChange(auth.activeAccount) }
       .task(id: channels) { channelRegistry.syncChannels(to: Set(channels.map(\.id))) }
       .task(every: .seconds(60), isBusy: $isRefreshing) { await refreshChannels() }

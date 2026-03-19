@@ -9,16 +9,24 @@ public final class AddedChannel {
   public var displayName: String
   public var profileImageURL: String
 
+  public var pinnedIndex: Int?
+
+  public var isPinned: Bool {
+    pinnedIndex != nil
+  }
+
   public init(
     id: String,
     login: String,
     displayName: String,
     profileImageURL: String,
+    pinnedIndex: Int? = nil
   ) {
     self.id = id
     self.login = login
     self.displayName = displayName
     self.profileImageURL = profileImageURL
+    self.pinnedIndex = pinnedIndex
   }
 
   @ModelActor

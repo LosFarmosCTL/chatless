@@ -14,11 +14,13 @@ struct ContentView: View {
   @Environment(AuthenticationStore.self) private var auth
   @Environment(ChannelEventStateRegistry.self) private var channelRegistry
 
+  @State private var editMode: EditMode = .inactive
+
   @State private var showingMentions = false
 
   @State private var searchText = ""
   @State private var isSearching: Bool = false
-  @Binding internal var isRefreshing: Bool
+  internal var isRefreshing: Bool
 
   var body: some View {
     @Bindable var router = router
@@ -32,30 +34,23 @@ struct ContentView: View {
         }
       }
       .navigationTitle("Chatless")
-      .toolbarTitleDisplayMode(.inline)
+      .toolbarTitleDisplayMode(.inlineLarge)
       .toolbar {
-        MentionsToolbarItem(placement: .topBarTrailing, showingMentions: $showingMentions)
-        AccountToolbarItem(placement: .topBarTrailing)
+        ToolbarItem(placement: .topBarTrailing) { EditButton() }
+        ToolbarSpacer(.fixed, placement: .topBarTrailing)
 
-        FilterChatListToolbarItem(placement: .bottomBar)
-        ToolbarSpacer(.flexible, placement: .bottomBar)
-        DefaultToolbarItem(kind: .search, placement: .bottomBar)
-
-        if isRefreshing {
-          ToolbarItem(placement: .principal) {
-            HStack {
-              ProgressView()
-
-              Text("Chatless")
-                .font(.headline)
-            }
-          }
+        if !editMode.isEditing {
+          AccountToolbarItem(placement: .topBarTrailing, isLoading: isRefreshing)
         }
+
+        DefaultToolbarItem(kind: .search, placement: .bottomBar)
+        ToolbarSpacer(.flexible, placement: .bottomBar)
+        MentionsToolbarItem(placement: .bottomBar, showingMentions: $showingMentions)
       }
+      .environment(\.editMode, $editMode)
       .searchable(
         text: $searchText,
         isPresented: $isSearching,
-        prompt: "Search on Twitch"
       )
       .navigationDestination(for: AppRoute.self) { route in
         switch route {

@@ -93,7 +93,7 @@ public struct SearchView: View {
           id: channel.id,
           login: channel.login,
           displayName: channel.name,
-          profileImageURL: channel.profilePictureURL))
+          profileImageURL: channel.profileImageURL))
 
       try? modelContext.save()
 
