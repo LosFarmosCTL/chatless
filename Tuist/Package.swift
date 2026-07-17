@@ -18,7 +18,10 @@ import PackageDescription
 #endif
 
 private let twitchClientURL = "https://github.com/LosFarmosCTL/swift-twitch-client"
-private let twitchClientLocalPath = ProcessInfo.processInfo.environment["SWIFT_TWITCH_CLIENT_PATH"]
+private let twitchClientLocalPath =
+  ProcessInfo.processInfo.environment["SWIFT_TWITCH_CLIENT_PATH"]
+  .map { URL(fileURLWithPath: $0).resolvingSymlinksInPath().path }
+
 private let twitchClient: PackageDescription.Package.Dependency =
   if let twitchClientLocalPath {
     .package(path: twitchClientLocalPath)
