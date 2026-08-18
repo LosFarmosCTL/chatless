@@ -1,0 +1,91 @@
+#!/bin/bash
+
+REPOSITORY_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+cd "$REPOSITORY_ROOT" || exit 0
+
+if ! command -v swift >/dev/null 2>&1; then
+  echo "Skipping Swift formatting: the Swift toolchain is not available."
+  exit 0
+fi
+
+echo "Running swift format on staged Swift files..."
+
+MODIFIED_FILES=()
+SKIPPED_FILES=()
+SKIPPED_SYMLINKS=()
+FOUND_FILES=false
+
+TEMPORARY_DIRECTORY=$(mktemp -d "${TMPDIR:-/tmp}/chatless-swift-format.XXXXXX") || {
+  echo "Skipping Swift formatting: could not create a temporary directory."
+  exit 0
+}
+trap 'rm -rf "$TEMPORARY_DIRECTORY"' EXIT
+
+while IFS= read -r -d '' FILE; do
+  FOUND_FILES=true
+
+  if [ -L "$FILE" ]; then
+    SKIPPED_SYMLINKS+=("$FILE")
+    continue
+  fi
+
+  [ -f "$FILE" ] || continue
+
+  # Running `git add` after formatting would also stage any unrelated working-tree
+  # edits. Skip partially staged files instead of changing the intended commit.
+  if ! git diff --quiet -- "$FILE"; then
+    SKIPPED_FILES+=("$FILE")
+    continue
+  fi
+
+  FORMATTED_FILE="$TEMPORARY_DIRECTORY/formatted.swift"
+  if ! swift format format --assume-filename "$FILE" - < "$FILE" > "$FORMATTED_FILE"; then
+    echo "Warning: swift format could not format $FILE; leaving it unchanged."
+    continue
+  fi
+
+  if ! cmp -s "$FILE" "$FORMATTED_FILE"; then
+    if ! cp "$FORMATTED_FILE" "$FILE"; then
+      echo "Could not replace file with formatted output: $FILE" >&2
+      exit 1
+    fi
+
+    if ! git add -- "$FILE"; then
+      echo "Could not stage formatted file: $FILE" >&2
+      exit 1
+    fi
+
+    MODIFIED_FILES+=("$FILE")
+  fi
+done < <(git diff --cached --name-only --diff-filter=ACMR -z -- '*.swift')
+
+if [ "$FOUND_FILES" = false ]; then
+  echo "No staged Swift files found."
+elif [ ${#MODIFIED_FILES[@]} -eq 0 ]; then
+  echo "No staged Swift files needed formatting."
+else
+  echo ""
+  echo "The following files were formatted and added back to the commit:"
+  for FILE in "${MODIFIED_FILES[@]}"; do
+    echo " - $FILE"
+  done
+fi
+
+if [ ${#SKIPPED_FILES[@]} -gt 0 ]; then
+  echo ""
+  echo "Skipped partially staged files to avoid staging unrelated edits:"
+  for FILE in "${SKIPPED_FILES[@]}"; do
+    echo " - $FILE"
+  done
+  echo "Format and stage those files manually, or stage each file completely."
+fi
+
+if [ ${#SKIPPED_SYMLINKS[@]} -gt 0 ]; then
+  echo ""
+  echo "Skipped symbolic links to avoid modifying their targets:"
+  for FILE in "${SKIPPED_SYMLINKS[@]}"; do
+    echo " - $FILE"
+  done
+fi
+
+exit 0
