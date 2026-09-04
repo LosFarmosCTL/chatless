@@ -19,7 +19,7 @@ public struct SearchView: View {
 
   @Environment(AppRouter.self) private var router
   @Environment(TwitchAPIService.self) private var twitchAPI
-  @Environment(ChannelStatusStore.self) private var channelStatusStore
+  @Environment(ChannelStore.self) private var channelStore
 
   @State private var results: TwitchResults = .loaded([])
 
@@ -97,7 +97,7 @@ public struct SearchView: View {
 
       try? modelContext.save()
 
-      channelStatusStore.update(
+      channelStore.seedStreamStatus(
         channelID: channel.id,
         isLive: channel.isLive,
         title: channel.title)

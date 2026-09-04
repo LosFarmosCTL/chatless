@@ -12,12 +12,20 @@ import Twitch
 
   public private(set) var context: Context?
 
+  @ObservationIgnored private var generation = UUID()
+
   public init() {}
 
   public func activate(account: ActiveAccount) async {
-    if let client = context?.client {
-      await client.resetEventSub()
-    }
+    generation = UUID()
+
+    let generation = generation
+    let previousClient = context?.client
+    context = nil
+
+    await previousClient?.resetEventSub()
+
+    guard !Task.isCancelled, self.generation == generation else { return }
 
     let client = TwitchClient(
       authentication: .init(
@@ -31,11 +39,11 @@ import Twitch
   }
 
   public func deactivate() async {
-    if let client = context?.client {
-      await client.resetEventSub()
-    }
+    generation = UUID()
 
+    let previousClient = context?.client
     context = nil
-  }
 
+    await previousClient?.resetEventSub()
+  }
 }

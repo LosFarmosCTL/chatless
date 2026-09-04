@@ -12,7 +12,7 @@ struct ContentView: View {
   @Environment(AppRouter.self) private var router
 
   @Environment(AuthenticationStore.self) private var auth
-  @Environment(ChannelEventStateRegistry.self) private var channelRegistry
+  @Environment(ChannelStore.self) private var channelStore
 
   @State private var editMode: EditMode = .inactive
 
@@ -55,7 +55,7 @@ struct ContentView: View {
       .navigationDestination(for: AppRoute.self) { route in
         switch route {
         case .chat(let channelID):
-          ChatView(state: channelRegistry.getOrCreateChannel(channelID))
+          ChatView(state: channelStore.channel(for: channelID))
         }
       }
       .sheet(isPresented: $showingMentions) { MentionsView() }

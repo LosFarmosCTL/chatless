@@ -118,7 +118,7 @@ public struct ChatListView: View {
 }
 
 private struct ChatList: View {
-  @Environment(ChannelStatusStore.self) private var channelStatusStore
+  @Environment(ChannelStore.self) private var channelStore
 
   private let channels: [AddedChannel]
 
@@ -149,13 +149,13 @@ private struct ChatList: View {
   public var body: some View {
     ForEach(channels, id: \.id) { channel in
       NavigationLink(value: AppRoute.chat(channelID: channel.id)) {
-        let status = channelStatusStore.status(for: channel.id)
+        let status = channelStore.state(for: channel.id)
 
         ChatListRowView(
           displayName: channel.displayName,
           profileImageURL: channel.profileImageURL,
           isLive: status?.isLive ?? false,
-          title: status?.title
+          title: status?.streamTitle
         )
       }
       .swipeActions(edge: .leading) {

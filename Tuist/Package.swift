@@ -9,7 +9,8 @@ import PackageDescription
 
   let packageSettings = PackageSettings(
     productTypes: [
-      "Twitch": .framework
+      "Twitch": .framework,
+      "TwitchIRC": .framework,
     ],
     targetSettings: [
       "Twitch": .settings(base: baseTargetSettings)

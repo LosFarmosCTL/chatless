@@ -13,24 +13,33 @@ struct RootView: View {
   @Environment(TwitchAPIService.self) private var twitchAPI
 
   @Environment(GlobalEventState.self) private var globalEventState
-  @Environment(ChannelEventStateRegistry.self) private var channelRegistry
-
-  @Environment(ChannelStatusStore.self) private var channelStatusStore
+  @Environment(ChannelStore.self) private var channelStore
 
   @Environment(\.modelContext) private var modelContext
   @Query private var channels: [AddedChannel]
 
   @State private var isRefreshing: Bool = false
 
+  private var channelLogins: [String: String] {
+    Dictionary(channels.map { ($0.id, $0.login) }, uniquingKeysWith: { first, _ in first })
+  }
+
   var body: some View {
     ContentView(isRefreshing: isRefreshing)
       .task(id: auth.activeAccount) { await handleAuthChange(auth.activeAccount) }
-      .task(id: channels) { channelRegistry.syncChannels(to: Set(channels.map(\.id))) }
+      .task(id: channelLogins) { channelStore.syncChannels(to: channelLogins) }
       .task(every: .seconds(60), isBusy: $isRefreshing) { await refreshChannels() }
   }
 
   @MainActor
   private func handleAuthChange(_ activeAccount: ActiveAccount?) async {
+    guard !Task.isCancelled, auth.activeAccount == activeAccount else {
+      return
+    }
+
+    channelStore.apply(context: nil)
+    globalEventState.stop()
+
     guard let activeAccount else {
       await clearSession()
       return
@@ -38,7 +47,10 @@ struct RootView: View {
 
     await twitchClientStore.activate(account: activeAccount)
 
-    channelRegistry.apply(context: twitchClientStore.context)
+    guard !Task.isCancelled, auth.activeAccount == activeAccount else { return }
+
+    channelStore.apply(context: twitchClientStore.context)
+
     if let context = twitchClientStore.context {
       globalEventState.start(context: context)
     } else {
@@ -50,29 +62,31 @@ struct RootView: View {
   private func clearSession() async {
     await twitchClientStore.deactivate()
 
-    channelRegistry.apply(context: nil)
+    guard !Task.isCancelled, auth.activeAccount == nil else { return }
+
+    channelStore.apply(context: nil)
     globalEventState.stop()
   }
 
   private func refreshChannels() async {
+    async let streamRefresh: Void = channelStore.refreshStreamStatus()
+
+    await refreshChannelProfiles()
+    await streamRefresh
+  }
+
+  private func refreshChannelProfiles() async {
+    guard let contextID = twitchClientStore.context?.id else { return }
+
     let updater = AddedChannel.Updater(modelContainer: modelContext.container)
 
     for channelBatch in channels.chunked(into: 100) {
-      async let usersRes = twitchAPI.request(.getUsers(ids: channelBatch.map(\.id)))
-      async let streamsRes = twitchAPI.request(.getStreams(userIDs: channelBatch.map(\.id)))
+      guard !Task.isCancelled, twitchClientStore.context?.id == contextID else { return }
 
-      let users = (try? await usersRes) ?? []
-      let streams = (try? await streamsRes)?.0 ?? []
+      if let users = try? await twitchAPI.request(.getUsers(ids: channelBatch.map(\.id))) {
+        guard !Task.isCancelled, twitchClientStore.context?.id == contextID else { return }
 
-      await updater.updateChannels(with: users)
-
-      let liveSet = Set(streams.map(\.userID))
-      let titleMap = Dictionary(uniqueKeysWithValues: streams.map { ($0.userID, $0.title) })
-      for channel in channelBatch {
-        channelStatusStore.update(
-          channelID: channel.id,
-          isLive: liveSet.contains(channel.id),
-          title: titleMap[channel.id] ?? "")
+        await updater.updateChannels(with: users)
       }
     }
   }

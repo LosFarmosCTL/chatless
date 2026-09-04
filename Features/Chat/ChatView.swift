@@ -3,20 +3,30 @@ import SwiftUI
 import TwitchSession
 
 public struct ChatView: View {
-  private let events: ChannelEventState
+  @Environment(ChannelStore.self) private var channelStore
 
-  public init(state: ChannelEventState) {
-    self.events = state
+  private let state: ChannelState
+
+  public init(state: ChannelState) {
+    self.state = state
   }
 
   public var body: some View {
-    Text("State: \(events.state)")
-    List(events.chatMessages, id: \.messageID) { message in
+    Text("State: \(state.connectionStatus)")
+
+    if case .failed = state.connectionStatus {
+      Button("Retry Chat") {
+        channelStore.retryMessages(in: state.channelID)
+      }
+    }
+
+    List(state.chatMessages) { message in
       VStack(alignment: .leading, spacing: 4) {
-        Text(message.chatterLogin)
+        Text(message.authorLogin)
           .font(.caption)
           .foregroundStyle(.secondary)
-        Text(message.message.text)
+
+        Text(message.rawText)
           .font(.body)
       }
     }
@@ -25,13 +35,19 @@ public struct ChatView: View {
   }
 }
 
-extension ChannelEventState.State: @retroactive CustomLocalizedStringResourceConvertible {
+extension ChatConnectionStatus: CustomLocalizedStringResourceConvertible {
   public var localizedStringResource: LocalizedStringResource {
     switch self {
-    case .idle: return .init("Idle")
-    case .connecting: return .init("Connecting")
-    case .connected: return .init("Connected")
-    case .error(let message): return .init("Error: \(message)")
+    case .idle:
+      return .init("Idle")
+    case .connecting:
+      return .init("Connecting")
+    case .connected:
+      return .init("Connected")
+    case .reconnecting(let message):
+      return .init("Reconnecting: \(message)")
+    case .failed(let message):
+      return .init("Error: \(message)")
     }
   }
 }

@@ -9,6 +9,7 @@ enum SearchResultAction {
 }
 
 struct SearchResultsView: View {
+  @Environment(ChannelStore.self) private var channelStore
   private let maxTwitchResults = 5
   private let skeletonWidths: [CGFloat] = [96, 142, 118, 168, 104]
 
@@ -27,8 +28,8 @@ struct SearchResultsView: View {
               ChatListRowView(
                 displayName: channel.displayName,
                 profileImageURL: channel.profileImageURL,
-                isLive: false,
-                title: nil
+                isLive: channelStore.state(for: channel.id)?.isLive ?? false,
+                title: channelStore.state(for: channel.id)?.streamTitle
               )
             }
           }
@@ -117,6 +118,7 @@ struct SearchResultsView: View {
     ),
     onResultAction: { _ in }
   )
+  .environment(ChannelStore())
 }
 
 #Preview("Loading") {
@@ -140,4 +142,5 @@ struct SearchResultsView: View {
     twitchResults: .loading,
     onResultAction: { _ in }
   )
+  .environment(ChannelStore())
 }

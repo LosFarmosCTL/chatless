@@ -112,6 +112,7 @@ let project = Project(
       dependencies: [
         .target(name: "TwitchSession"),
         .target(name: "Auth"),
+        .external(name: "TwitchIRC"),
       ]
     ),
     .module(
