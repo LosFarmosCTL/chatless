@@ -1,3 +1,4 @@
+import Emotes
 import Observation
 import TwitchSession
 
@@ -12,16 +13,13 @@ import TwitchSession
   public internal(set) var isLive = false
   public internal(set) var streamTitle = ""
 
-  public private(set) var chatMessages: [IncomingChatMessage] = []
+  let feed: ChatFeedStore
 
   @ObservationIgnored var streamRevision = 0
 
-  @ObservationIgnored private var messageIDs: Set<String> = []
-
-  private let historyLimit = 1_000
-
   init(channelID: String) {
     self.channelID = channelID
+    self.feed = ChatFeedStore(channelID: channelID)
   }
 
   public func subscriptionStatus(for kind: ChannelSubscriptionKind) -> EventSubscriptionStatus {
@@ -37,17 +35,10 @@ import TwitchSession
   }
 
   func receive(_ message: IncomingChatMessage) {
-    guard message.channelID == channelID,
-      messageIDs.insert(message.id).inserted
-    else {
-      return
-    }
+    feed.receive(message)
+  }
 
-    chatMessages.append(message)
-
-    if chatMessages.count > historyLimit {
-      let removed = chatMessages.removeFirst()
-      messageIDs.remove(removed.id)
-    }
+  func apply(_ update: EmoteCatalogUpdate) {
+    feed.apply(update)
   }
 }

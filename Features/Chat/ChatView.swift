@@ -12,26 +12,27 @@ public struct ChatView: View {
   }
 
   public var body: some View {
-    Text("State: \(state.connectionStatus)")
+    ChatFeedView(feed: state.feed)
+      .safeAreaInset(edge: .top, spacing: 0) {
+        if state.connectionStatus != .connected {
+          HStack {
+            Text("State: \(state.connectionStatus)")
+              .font(.caption)
+              .foregroundStyle(.secondary)
 
-    if case .failed = state.connectionStatus {
-      Button("Retry Chat") {
-        channelStore.retryMessages(in: state.channelID)
+            if case .failed = state.connectionStatus {
+              Button("Retry Chat") {
+                channelStore.retryMessages(in: state.channelID)
+              }
+            }
+          }
+          .padding(8)
+          .frame(maxWidth: .infinity)
+          .background(.bar)
+        }
       }
-    }
-
-    List(state.chatMessages) { message in
-      VStack(alignment: .leading, spacing: 4) {
-        Text(message.authorLogin)
-          .font(.caption)
-          .foregroundStyle(.secondary)
-
-        Text(message.rawText)
-          .font(.body)
-      }
-    }
-    .navigationTitle("Chat")
-    .toolbarTitleDisplayMode(.inline)
+      .navigationTitle("Chat")
+      .toolbarTitleDisplayMode(.inline)
   }
 }
 

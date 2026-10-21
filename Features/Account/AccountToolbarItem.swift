@@ -12,11 +12,17 @@ public struct AccountToolbarItem: ToolbarContent {
   var accounts: [AuthenticatedUser]
 
   private let isLoading: Bool
+  private let openSettings: () -> Void
 
   private let placement: ToolbarItemPlacement
-  public init(placement: ToolbarItemPlacement, isLoading: Bool) {
+  public init(
+    placement: ToolbarItemPlacement,
+    isLoading: Bool,
+    openSettings: @escaping () -> Void = {}
+  ) {
     self.placement = placement
     self.isLoading = isLoading
+    self.openSettings = openSettings
   }
 
   private func login() { Task { await loginService.login(using: webAuthenticationSession) } }
@@ -80,8 +86,7 @@ public struct AccountToolbarItem: ToolbarContent {
         }
 
         Section {
-          Button {
-          } label: {
+          Button(action: openSettings) {
             Label("Settings", systemImage: "gear")
           }
         }

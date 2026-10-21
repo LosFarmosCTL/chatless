@@ -1,3 +1,4 @@
+import Chat
 import SwiftUI
 import Twitch
 
@@ -5,35 +6,12 @@ struct TwitchResultView: View {
   let channel: Channel
 
   var body: some View {
-    HStack(spacing: 8) {
-      AsyncImage(url: URL(string: channel.profileImageURL)) { image in
-        image.resizable().scaledToFill()
-      } placeholder: {
-        Circle().fill(.gray.opacity(0.2))
-      }
-      .frame(width: 32, height: 32)
-      .clipShape(Circle())
-
-      VStack(alignment: .leading, spacing: 4) {
-        Text(channel.name)
-          .font(.headline)
-
-        if channel.isLive && !channel.title.isEmpty {
-          Text(channel.title)
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .lineLimit(1)
-        }
-      }
-
-      Spacer()
-
-      if channel.isLive {
-        Text("LIVE")
-          .font(.caption.weight(.semibold))
-          .foregroundStyle(.red)
-      }
-    }
+    ChatListRowView(
+      displayName: channel.name,
+      profileImageURL: channel.profileImageURL,
+      isLive: channel.isLive,
+      title: channel.title
+    )
   }
 
   struct Skeleton: View {

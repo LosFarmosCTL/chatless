@@ -1,3 +1,4 @@
+import Emotes
 import Foundation
 import Observation
 import TwitchSession
@@ -10,10 +11,10 @@ import TwitchSession
   @ObservationIgnored private var channelIDsByLogin: [String: String] = [:]
 
   @ObservationIgnored private(set) var context: TwitchClientStore.Context?
+  @ObservationIgnored private let catalogs: EmoteCatalogStore
   @ObservationIgnored private let chat = IRCChatConnection()
   @ObservationIgnored private let events = ChannelEventSubscriptions()
 
-  // Stream reconciliation is implemented in ChannelStore+StreamStatus.
   @ObservationIgnored var refreshTokens: [String: UUID] = [:]
   @ObservationIgnored var refreshTask: Task<Void, Never>?
   @ObservationIgnored var pendingRefreshes:
@@ -23,7 +24,17 @@ import TwitchSession
     Set(logins.keys)
   }
 
-  public init() {
+  public convenience init() {
+    self.init(catalogs: EmoteCatalogStore())
+  }
+
+  public init(catalogs: EmoteCatalogStore) {
+    self.catalogs = catalogs
+
+    catalogs.onUpdate = { [weak self] update in
+      self?.channels[update.catalog.channelID]?.apply(update)
+    }
+
     chat.onMessage = { [weak self] message in
       guard let self, let id = channelIDsByLogin[message.channel.lowercased()] else {
         return
@@ -70,6 +81,7 @@ import TwitchSession
 
     let state = ChannelState(channelID: id)
     channels[id] = state
+    state.apply(catalogs.update(for: id))
 
     return state
   }
@@ -98,6 +110,7 @@ import TwitchSession
       channel(for: id)
     }
 
+    catalogs.syncChannels(ids)
     chat.setChannels(Set(logins.values))
     events.syncChannels(to: ids, context: context)
 
@@ -128,6 +141,14 @@ import TwitchSession
     for id in savedChannelIDs {
       scheduleRefresh(for: id)
     }
+  }
+
+  public func setSceneActive(_ active: Bool) {
+    catalogs.setSceneActive(active)
+  }
+
+  public func refreshEmotes() {
+    catalogs.refresh()
   }
 
   public func retryMessages(in channelID: String) {

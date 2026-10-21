@@ -3,6 +3,7 @@ import Auth
 import Chat
 import Mentions
 import Search
+import Settings
 import Shared
 import SwiftData
 import SwiftUI
@@ -17,6 +18,7 @@ struct ContentView: View {
   @State private var editMode: EditMode = .inactive
 
   @State private var showingMentions = false
+  @State private var showingSettings = false
 
   @State private var searchText = ""
   @State private var isSearching: Bool = false
@@ -40,7 +42,10 @@ struct ContentView: View {
         ToolbarSpacer(.fixed, placement: .topBarTrailing)
 
         if !editMode.isEditing {
-          AccountToolbarItem(placement: .topBarTrailing, isLoading: isRefreshing)
+          AccountToolbarItem(
+            placement: .topBarTrailing, isLoading: isRefreshing,
+            openSettings: { showingSettings = true }
+          )
         }
 
         DefaultToolbarItem(kind: .search, placement: .bottomBar)
@@ -58,6 +63,7 @@ struct ContentView: View {
           ChatView(state: channelStore.channel(for: channelID))
         }
       }
+      .sheet(isPresented: $showingSettings) { SettingsView() }
       .sheet(isPresented: $showingMentions) { MentionsView() }
       .sheet(isPresented: .constant(auth.activeAccount == nil)) {
         AccountManagerView()

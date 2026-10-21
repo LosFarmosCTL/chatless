@@ -1,6 +1,15 @@
 {
-  "originHash" : "5d1631411e04be6a1ad53df0c328cf93fa6f3213f71730fd36c0435580567af9",
+  "originHash" : "ceed42c18f5c694c4dc4dd86d8d00b920d0b11d5eeb551d55e6bc55999cd723b",
   "pins" : [
+    {
+      "identity" : "sdwebimage",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/SDWebImage/SDWebImage",
+      "state" : {
+        "revision" : "2de3a496eaf6df9a1312862adcfd54acd73c39c0",
+        "version" : "5.21.7"
+      }
+    },
     {
       "identity" : "swift-memberwise-init-macro",
       "kind" : "remoteSourceControl",

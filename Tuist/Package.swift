@@ -11,6 +11,7 @@ import PackageDescription
     productTypes: [
       "Twitch": .framework,
       "TwitchIRC": .framework,
+      "SDWebImage": .framework,
     ],
     targetSettings: [
       "Twitch": .settings(base: baseTargetSettings)
@@ -33,6 +34,7 @@ private let twitchClient: PackageDescription.Package.Dependency =
 let package = PackageDescription.Package(
   name: "Chatless",
   dependencies: [
-    twitchClient
+    twitchClient,
+    .package(url: "https://github.com/SDWebImage/SDWebImage.git", exact: "5.21.7"),
   ],
 )

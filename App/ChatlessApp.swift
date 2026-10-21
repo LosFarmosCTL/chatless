@@ -1,6 +1,7 @@
 import Account
 import Auth
 import Chat
+import EmoteRendering
 import Shared
 import SwiftData
 import SwiftUI
@@ -9,6 +10,9 @@ import TwitchSession
 @main
 struct ChatlessApp: App {
   private let container: ModelContainer
+
+  @State private var preferences = AppPreferences()
+  @State private var emotePlayback = EmotePlaybackCoordinator()
 
   @State private var router: AppRouter
 
@@ -49,6 +53,8 @@ struct ChatlessApp: App {
         .modelContainer(container)
 
         .environment(router)
+        .environment(preferences)
+        .environment(emotePlayback)
 
         .environment(authenticationStore)
         .environment(loginService)

@@ -32,8 +32,7 @@ extension Target {
   ) -> Target {
     let mergedSettings = baseTargetSettings.merging(additionalSettings) { _, new in new }
     var mergedDependencies: [TargetDependency] = [
-      .package(product: "SwiftLintBuildToolPlugin", type: .plugin),
-      .external(name: "Twitch"),
+      .package(product: "SwiftLintBuildToolPlugin", type: .plugin)
     ]
 
     if includeShared {

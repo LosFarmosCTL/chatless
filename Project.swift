@@ -53,6 +53,9 @@ let project = Project(
       dependencies: [
         .target(name: "Auth"),
         .target(name: "TwitchSession"),
+        .target(name: "EmoteRendering"),
+        .target(name: "Settings"),
+        .external(name: "Twitch"),
 
         .target(name: "Account"),
         .target(name: "Chat"),
@@ -89,8 +92,24 @@ let project = Project(
       bundleId: "app.chatless.Chatless.TwitchSession",
       sources: ["Core/TwitchSession/**/*.swift"],
       dependencies: [
-        .target(name: "Auth")
+        .target(name: "Auth"),
+        .external(name: "Twitch"),
       ]
+    ),
+
+    .module(
+      name: "Emotes",
+      bundleId: "app.chatless.Chatless.Emotes",
+      sources: ["Core/Emotes/**/*.swift"],
+      includeShared: false
+    ),
+    .module(
+      name: "EmoteRendering",
+      bundleId: "app.chatless.Chatless.EmoteRendering",
+      sources: ["Core/EmoteRendering/**/*.swift"],
+      resources: ["Resources/EmoteRendering/**"],
+      dependencies: [.target(name: "Emotes"), .external(name: "SDWebImage")],
+      includeShared: false
     ),
 
     // MARK: Feature Targets
@@ -101,7 +120,8 @@ let project = Project(
       sources: ["Features/Account/**/*.swift"],
       resources: ["Resources/Account/**"],
       dependencies: [
-        .target(name: "Auth")
+        .target(name: "Auth"),
+        .external(name: "Twitch"),
       ]
     ),
     .module(
@@ -113,6 +133,9 @@ let project = Project(
         .target(name: "TwitchSession"),
         .target(name: "Auth"),
         .external(name: "TwitchIRC"),
+        .external(name: "Twitch"),
+        .target(name: "Emotes"),
+        .target(name: "EmoteRendering"),
       ]
     ),
     .module(
@@ -129,8 +152,16 @@ let project = Project(
       dependencies: [
         .target(name: "TwitchSession"),
         .target(name: "Chat"),
+        .external(name: "Twitch"),
       ]
     ),
+    .module(
+      name: "Settings",
+      bundleId: "app.chatless.Chatless.Settings",
+      sources: ["Features/Settings/**/*.swift"],
+      resources: ["Resources/Settings/**"],
+    ),
+
   ],
   additionalFiles: [
     "README.md",

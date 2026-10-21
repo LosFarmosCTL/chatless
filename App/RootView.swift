@@ -1,5 +1,6 @@
 import Auth
 import Chat
+import EmoteRendering
 import Shared
 import SwiftData
 import SwiftUI
@@ -7,6 +8,12 @@ import Twitch
 import TwitchSession
 
 struct RootView: View {
+  @Environment(AppPreferences.self) private var preferences
+  @Environment(EmotePlaybackCoordinator.self) private var emotePlayback
+  @Environment(\.scenePhase) private var scenePhase
+  @Environment(\.accessibilityPlayAnimatedImages) private var playAnimatedImages
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
   @Environment(AuthenticationStore.self) private var auth
   @Environment(TwitchClientStore.self) private var twitchClientStore
 
@@ -28,7 +35,22 @@ struct RootView: View {
     ContentView(isRefreshing: isRefreshing)
       .task(id: auth.activeAccount) { await handleAuthChange(auth.activeAccount) }
       .task(id: channelLogins) { channelStore.syncChannels(to: channelLogins) }
+      .task(id: scenePhase) {
+        emotePlayback.setSceneActive(scenePhase == .active)
+        channelStore.setSceneActive(scenePhase == .active)
+      }
+      .task(id: animatedEmotesEnabled) {
+        emotePlayback.setAnimatedEmotesEnabled(animatedEmotesEnabled)
+      }
       .task(every: .seconds(60), isBusy: $isRefreshing) { await refreshChannels() }
+  }
+
+  private var animatedEmotesEnabled: Bool {
+    switch preferences.accessibility.animatedEmotes {
+    case .systemDefault: playAnimatedImages && !reduceMotion
+    case .always: true
+    case .never: false
+    }
   }
 
   @MainActor
