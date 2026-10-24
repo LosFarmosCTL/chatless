@@ -9,7 +9,7 @@ let project = Project(
   packages: [
     .remote(
       url: "https://github.com/SimplyDanny/SwiftLintPlugins",
-      requirement: .upToNextMajor(from: "0.63.1")
+      requirement: .exact("0.65.1")
     )
   ],
   settings: .settings(base: [
