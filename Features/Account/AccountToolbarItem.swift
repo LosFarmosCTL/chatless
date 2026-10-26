@@ -1,4 +1,5 @@
 import Auth
+import AuthenticationServices
 import SwiftData
 import SwiftUI
 
