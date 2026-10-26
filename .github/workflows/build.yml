@@ -58,11 +58,12 @@ jobs:
             -skipPackagePluginValidation \
             -skipMacroValidation \
             CODE_SIGNING_ALLOWED=NO \
-            2>&1 | tee artifacts/build.log | xcbeautify --renderer github-actions
+            2>&1 | tee artifacts/build.log | xcbeautify --renderer github-actions \
+              | awk '/^::(warning|error|notice)( |::)/ && seen[$0]++ { next } { print; fflush() }'
 
       - name: Upload build diagnostics
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ios-build-diagnostics
           path: artifacts/
