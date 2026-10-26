@@ -32,7 +32,7 @@ jobs:
 
       - name: Check lint (including warnings)
         run: |
-          git ls-files -z -- '*.swift' | xargs -0 swiftlint lint --strict --config .swiftlint.yml --reporter github-actions-logging
+          git ls-files -z -- '*.swift' | xargs -0 swiftlint lint --strict --reporter github-actions-logging
 
   format:
     name: Check formatting
