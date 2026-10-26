@@ -1,0 +1,71 @@
+name: iOS Build
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    name: Debug Simulator Build
+    runs-on: xcode-27
+    timeout-minutes: 45
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_27.0.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install build tools
+        run: brew install tuist xcbeautify
+
+      - name: Show toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+          tuist version
+
+      - name: Install dependencies and generate workspace
+        run: |
+          tuist install
+          tuist generate --no-open --cache-profile none
+          git diff --exit-code -- Tuist/Package.resolved .package.resolved
+
+      - name: Build all app dependencies from source
+        run: |
+          set -o pipefail
+          mkdir -p artifacts
+          xcodebuild build \
+            -workspace Chatless.xcworkspace \
+            -scheme Chatless \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/ChatlessDerivedData" \
+            -resultBundlePath artifacts/Build.xcresult \
+            -disableAutomaticPackageResolution \
+            -onlyUsePackageVersionsFromResolvedFile \
+            -skipPackagePluginValidation \
+            -skipMacroValidation \
+            CODE_SIGNING_ALLOWED=NO \
+            2>&1 | tee artifacts/build.log | xcbeautify --renderer github-actions \
+              | awk '/^::(warning|error|notice)( |::)/ && seen[$0]++ { next } { print; fflush() }'
+
+      - name: Upload build diagnostics
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ios-build-diagnostics
+          path: artifacts/
+          if-no-files-found: ignore
+          retention-days: 7

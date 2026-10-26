@@ -1,0 +1,48 @@
+name: Swift Style
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: xcode-27
+    timeout-minutes: 15
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_27.0.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install SwiftLint
+        run: brew install swiftlint
+
+      - name: Check lint (including warnings)
+        run: |
+          git ls-files -z -- '*.swift' | xargs -0 swiftlint lint --strict --reporter github-actions-logging
+
+  format:
+    name: Check formatting
+    runs-on: xcode-27
+    timeout-minutes: 15
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_27.0.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check formatting
+        run: |
+          git ls-files -z -- '*.swift' | xargs -0 swift format lint --strict --configuration .swift-format
