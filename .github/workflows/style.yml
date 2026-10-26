@@ -18,8 +18,8 @@ defaults:
     shell: bash
 
 jobs:
-  style:
-    name: Formatting and Lint
+  lint:
+    name: Lint
     runs-on: xcode-27
     timeout-minutes: 15
     env:
@@ -27,25 +27,22 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Install SwiftLint matching the build plugin
-        id: tools
+      - name: Install SwiftLint
+        run: brew install swiftlint
+
+      - name: Check lint (including warnings)
         run: |
-          swiftlint_version=$(jq -er 'first(.pins[] | select(.identity == "swiftlintplugins") | .state.version)' .package.resolved)
-          swiftlint_directory="$RUNNER_TEMP/swiftlint"
-          mkdir -p "$swiftlint_directory"
-          curl --fail --location --retry 3 \
-            "https://github.com/realm/SwiftLint/releases/download/$swiftlint_version/portable_swiftlint.zip" \
-            -o "$RUNNER_TEMP/swiftlint.zip"
-          unzip -q "$RUNNER_TEMP/swiftlint.zip" -d "$swiftlint_directory"
-          echo "$swiftlint_directory" >> "$GITHUB_PATH"
+          git ls-files -z -- '*.swift' | xargs -0 swiftlint lint --strict --config .swiftlint.yml --reporter github-actions-logging
+
+  format:
+    name: Check formatting
+    runs-on: xcode-27
+    timeout-minutes: 15
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_27.0.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v5
 
       - name: Check formatting
         run: |
-          set -o pipefail
           git ls-files -z -- '*.swift' | xargs -0 swift format lint --strict --configuration .swift-format
-
-      - name: Check lint (including warnings)
-        if: ${{ !cancelled() && steps.tools.outcome == 'success' }}
-        run: |
-          set -o pipefail
-          git ls-files -z -- '*.swift' | xargs -0 swiftlint lint --strict --config .swiftlint.yml --reporter github-actions-logging
