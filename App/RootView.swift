@@ -105,7 +105,7 @@ struct RootView: View {
     for channelBatch in channels.chunked(into: 100) {
       guard !Task.isCancelled, twitchClientStore.context?.id == contextID else { return }
 
-      if let users = try? await twitchAPI.request(.getUsers(ids: channelBatch.map(\.id))) {
+      if let users = try? await twitchAPI.request(.getUsers(userIDs: channelBatch.map(\.id))) {
         guard !Task.isCancelled, twitchClientStore.context?.id == contextID else { return }
 
         await updater.updateChannels(with: users)

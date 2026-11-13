@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 import Twitch
 
 @MainActor
@@ -9,7 +10,7 @@ import Twitch
   }
 
   public private(set) var state: State = .idle
-  public private(set) var whispers: [WhisperReceivedEvent] = []
+  public private(set) var whispers: [UserWhisperMessageEvent] = []
   public private(set) var unreadWhispers: Int = 0
 
   @ObservationIgnored private var tasks: [Task<Void, Never>] = []
@@ -44,7 +45,7 @@ import Twitch
   private func consumeWhispers(context: TwitchClientStore.Context) async {
     do {
       let stream = try await context.client.eventStream(
-        for: .whisperReceived(userID: context.userID)
+        for: .userWhisperMessage(userID: context.userID)
       )
 
       await MainActor.run { self.state = .connected }

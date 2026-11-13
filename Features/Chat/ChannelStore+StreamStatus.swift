@@ -90,11 +90,11 @@ extension ChannelStore {
 
       do {
         let (streams, _) = try await context.client.helix(
-          endpoint: .getStreams(
+          for: .getStreams(
             userIDs: snapshots.map { $0.0.channelID },
             limit: 100
           )
-        )
+        ).value
 
         guard !Task.isCancelled, self.context?.id == context.id else {
           return

@@ -105,7 +105,7 @@ struct SearchResultsView: View {
         repeating: .init(
           id: "22484632",
           login: "forsen",
-          name: "forsen",
+          displayName: "forsen",
           language: "en",
           gameID: "509663",
           gameName: "Special Events",

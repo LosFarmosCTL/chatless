@@ -26,22 +26,23 @@ import Twitch
         localState: state
       )
 
-      let validatedToken = try await TwitchClient.validateToken(token: token)
+      let validatedToken = try await TwitchClient.validateAccessToken(accessToken: token)
+
+      guard let identity = validatedToken.user else {
+        throw TwitchAuthenticationError.userAccessTokenRequired
+      }
 
       if let user = try await TwitchClient(
-        authentication: .init(
-          oAuth: token,
-          clientID: validatedToken.clientID,
-          userID: validatedToken.userID,
-          userLogin: validatedToken.login)
-      ).helix(endpoint: .getUsers(ids: [validatedToken.userID])).first {
+        credentials: validatedToken.credentials(accessToken: token)
+      ).helix(for: .getUsers(userIDs: [identity.id])).value.first {
         await auth.activateAccount(
           profile: .init(
             id: user.id,
             displayName: user.displayName,
             login: user.login,
-            profileImageURL: user.profileImageUrl),
+            profileImageURL: user.profileImageURL),
           with: AuthToken(
+            clientID: validatedToken.clientID,
             accessToken: token,
             expirationDate: validatedToken.expiresIn.flatMap {
               Date(timeIntervalSinceNow: Double($0))
