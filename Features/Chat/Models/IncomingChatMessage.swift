@@ -1,4 +1,5 @@
 import Foundation
+import TwitchIRC
 
 public struct IncomingChatMessage: Hashable, Identifiable, Sendable {
   public let id: String
@@ -9,16 +10,14 @@ public struct IncomingChatMessage: Hashable, Identifiable, Sendable {
   public let authorDisplayName: String
   public let authorColorHex: String?
 
-  public let badges: [String]
-  public let badgeInfo: [String]
+  public let badges: [Badge]
+  public let badgeInfo: [BadgeInfo]
 
   public let sentAt: Date?
   public let rawText: String
   public let isAction: Bool
 
   public let twitchEmotes: [IncomingChatEmote]
-
-  public let rawEmoteTag: String
 
   public init(
     id: String,
@@ -27,13 +26,12 @@ public struct IncomingChatMessage: Hashable, Identifiable, Sendable {
     authorLogin: String,
     authorDisplayName: String,
     authorColorHex: String? = nil,
-    badges: [String] = [],
-    badgeInfo: [String] = [],
+    badges: [Badge] = [],
+    badgeInfo: [BadgeInfo] = [],
     sentAt: Date? = nil,
     rawText: String,
     isAction: Bool = false,
-    twitchEmotes: [IncomingChatEmote] = [],
-    rawEmoteTag: String = ""
+    twitchEmotes: [IncomingChatEmote] = []
   ) {
     self.id = id
     self.channelID = channelID
@@ -51,6 +49,5 @@ public struct IncomingChatMessage: Hashable, Identifiable, Sendable {
     self.isAction = isAction
 
     self.twitchEmotes = twitchEmotes
-    self.rawEmoteTag = rawEmoteTag
   }
 }

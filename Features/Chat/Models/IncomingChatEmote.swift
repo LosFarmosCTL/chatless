@@ -1,9 +1,10 @@
 public struct IncomingChatEmote: Hashable, Sendable {
   public let id: String
   public let name: String
-  public let range: Range<Int>
+  // Indices refer to the enclosing IncomingChatMessage.rawText.
+  public let range: Range<String.Index>
 
-  public init(id: String, name: String, range: Range<Int>) {
+  public init(id: String, name: String, range: Range<String.Index>) {
     self.id = id
     self.name = name
     self.range = range

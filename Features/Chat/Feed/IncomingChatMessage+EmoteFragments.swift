@@ -1,40 +1,23 @@
 import Emotes
 
 extension IncomingChatMessage {
-  // IRC positions count Unicode scalars. Build fragments in text order from those positions.
   var emoteFragments: [EmoteSourceFragment] {
-    let scalars = Array(rawText.unicodeScalars)
-    let emotesByOffset = Dictionary(
-      uniqueKeysWithValues: twitchEmotes.map {
-        ($0.range.lowerBound, $0)
-      })
-
     var fragments: [EmoteSourceFragment] = []
-    var cursor = 0
-    var textStart = 0
+    var cursor = rawText.startIndex
 
-    while cursor < scalars.count {
-      guard let emote = emotesByOffset[cursor] else {
-        cursor += 1
-        continue
-      }
+    for emote in twitchEmotes.sorted(by: { $0.range.lowerBound < $1.range.lowerBound }) {
+      guard emote.range.lowerBound >= cursor else { continue }
 
-      if textStart < cursor {
-        let text = String(String.UnicodeScalarView(scalars[textStart..<cursor]))
-
-        fragments.append(.text(text))
+      if cursor < emote.range.lowerBound {
+        fragments.append(.text(String(rawText[cursor..<emote.range.lowerBound])))
       }
 
       fragments.append(.twitchEmote(name: emote.name, id: emote.id))
-
       cursor = emote.range.upperBound
-      textStart = cursor
     }
 
-    if textStart < scalars.count {
-      let text = String(String.UnicodeScalarView(scalars[textStart..<scalars.count]))
-
-      fragments.append(.text(text))
+    if cursor < rawText.endIndex {
+      fragments.append(.text(String(rawText[cursor...])))
     }
 
     return fragments

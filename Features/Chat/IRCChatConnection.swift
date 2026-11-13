@@ -92,7 +92,7 @@ final class IRCChatConnection {
 
     setupTask = Task { [weak self] in
       // Register both observers before connecting, including during multi-socket startup.
-      let messages = await client.messages()
+      let messages = await client.messageStream()
       let states = await client.stateUpdates()
 
       guard !Task.isCancelled, self?.generation == generation else {

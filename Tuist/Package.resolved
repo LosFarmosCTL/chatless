@@ -34,16 +34,16 @@
       "location" : "https://github.com/LosFarmosCTL/swift-twitch-client",
       "state" : {
         "branch" : "main",
-        "revision" : "12c2f01c5a7ddda7e6b181875eb30af900a663d5"
+        "revision" : "134982c9479fb18f072772bf44495704da7e5018"
       }
     },
     {
       "identity" : "twitchirc",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/MahdiBM/TwitchIRC",
+      "location" : "https://github.com/LosFarmosCTL/TwitchIRC",
       "state" : {
-        "revision" : "036f70385fe4f6d30ad2634699eb1e8e00b52087",
-        "version" : "1.6.0"
+        "revision" : "bb1622e426d7664775e6d2a6383d54a81e62818e",
+        "version" : "2.0.0"
       }
     }
   ],
