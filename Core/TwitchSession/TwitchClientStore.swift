@@ -1,5 +1,6 @@
 import Auth
 import Foundation
+import Observation
 import Twitch
 
 @MainActor
@@ -28,8 +29,8 @@ import Twitch
     guard !Task.isCancelled, self.generation == generation else { return }
 
     let client = TwitchClient(
-      authentication: .init(
-        oAuth: account.accessToken,
+      credentials: .init(
+        accessToken: account.accessToken,
         clientID: account.clientID,
         userID: account.profile.id,
         userLogin: account.profile.login

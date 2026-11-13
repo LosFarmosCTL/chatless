@@ -1,4 +1,5 @@
-import SwiftUI
+import Foundation
+import Observation
 import Twitch
 
 @MainActor
@@ -29,27 +30,27 @@ import Twitch
     return try await request(client)
   }
 
-  public func request<R>(
-    _ endpoint: HelixEndpoint<R, some Decodable, HelixEndpointResponseTypes.Normal>
+  public func request<R: Sendable>(
+    _ endpoint: HelixEndpoint<R, some Decodable & Sendable, HelixEndpointResponseTypes.Normal>
   ) async throws -> R {
     guard let client = twitchClientStore.context?.client else { throw Error.notAuthenticated }
 
-    return try await client.helix(endpoint: endpoint)
+    return try await client.helix(for: endpoint).value
   }
 
-  public func request<R>(
-    _ endpoint: HelixEndpoint<R, some Decodable, HelixEndpointResponseTypes.Raw>
+  public func request<R: Sendable>(
+    _ endpoint: HelixEndpoint<R, some Decodable & Sendable, HelixEndpointResponseTypes.Raw>
   ) async throws -> R {
     guard let client = twitchClientStore.context?.client else { throw Error.notAuthenticated }
 
-    return try await client.helix(endpoint: endpoint)
+    return try await client.helix(for: endpoint).value
   }
 
   public func request(
-    _ endpoint: HelixEndpoint<Void, some Decodable, HelixEndpointResponseTypes.Void>
+    _ endpoint: HelixEndpoint<Void, some Decodable & Sendable, HelixEndpointResponseTypes.Void>
   ) async throws {
     guard let client = twitchClientStore.context?.client else { throw Error.notAuthenticated }
 
-    try await client.helix(endpoint: endpoint)
+    try await client.helix(for: endpoint).value
   }
 }

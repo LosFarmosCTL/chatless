@@ -7,7 +7,7 @@ struct TwitchResultView: View {
 
   var body: some View {
     ChatListRowView(
-      displayName: channel.name,
+      displayName: channel.displayName,
       profileImageURL: channel.profileImageURL,
       isLive: channel.isLive,
       title: channel.title
@@ -44,7 +44,7 @@ struct TwitchResultView: View {
       channel: .init(
         id: "22484632",
         login: "forsen",
-        name: "forsen",
+        displayName: "forsen",
         language: "en",
         gameID: "509663",
         gameName: "Special Events",
@@ -63,7 +63,7 @@ struct TwitchResultView: View {
       channel: .init(
         id: "22484632",
         login: "forsen",
-        name: "forsen",
+        displayName: "forsen",
         language: "en",
         gameID: "509663",
         gameName: "Special Events",

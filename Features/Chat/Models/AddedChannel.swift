@@ -44,7 +44,7 @@ public final class AddedChannel {
         if let channel = channelMap[data.id] {
           channel.login = data.login
           channel.displayName = data.displayName
-          channel.profileImageURL = data.profileImageUrl
+          channel.profileImageURL = data.profileImageURL
         }
       }
 

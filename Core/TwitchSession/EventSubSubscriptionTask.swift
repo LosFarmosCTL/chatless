@@ -128,7 +128,7 @@ public final class EventSubSubscriptionTask {
 
     if let error = error as? HelixError {
       switch error {
-      case .networkError: return true
+      case .networkError, .rateLimited: return true
       case .twitchError(_, let status, _):
         if status == 409 {
           // A previous subscription may still be deleting. Retry briefly,
